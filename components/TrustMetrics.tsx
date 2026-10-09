@@ -20,8 +20,8 @@ export function TrustMetrics() {
       icon: TrendingUp,
       number: 4.7,
       prefix: "",
-      suffix: "Successful Rating",
-      label: "Revenue Generated",
+      suffix: "+",
+      label: "Successful Rating",
     },
   ];
 
