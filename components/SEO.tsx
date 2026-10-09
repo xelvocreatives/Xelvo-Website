@@ -6,14 +6,14 @@ export function SEO() {
   useEffect(() => {
     // Set page title
     document.title =
-      "Yelvo Creatives - Shariah-Compliant Branding & Marketing Agency";
+      "Xelvo Creatives | Shariah-Compliant Design & Marketing Agency";
 
     // Set meta description
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
       metaDescription.setAttribute(
         "content",
-        "Build Shariah-compliant brands that scale and compete in global markets. Expert branding, visual communication, and marketing solutions for Muslim businesses worldwide."
+        "Grow and scale your brand with Shariah-compliant design & marketing from Xelvo Creatives. Compete in global markets without compromising your values"
       );
     } else {
       const meta = document.createElement("meta");
