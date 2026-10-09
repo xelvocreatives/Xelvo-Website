@@ -1,0 +1,111 @@
+name: Supabase Keep-Alive
+
+# Keeps the free-tier Supabase project from idling into a paused state.
+#
+# Two independent probes:
+#   1. Supabase REST, called directly  -> the guarantee. Depends only on the
+#      Supabase project, so it keeps working if the app moves hosts, changes
+#      domain, or is down entirely. A failure here fails the job.
+#   2. The app's own /api/health       -> optional end-to-end check. A stale
+#      URL only produces a warning, never a false "database is down" alarm.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: # manual run from the Actions tab
+
+concurrency:
+  group: supabase-keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # --- Probe 1: Supabase directly (host-independent) ------------------
+      - name: Ping Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          # Repo variable; defaults to Project when unset.
+          HEALTH_TABLE: ${{ vars.HEALTH_CHECK_TABLE }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${SUPABASE_ANON_KEY:-}" ]; then
+            echo "::error::Set the NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY repo secrets"
+            exit 1
+          fi
+
+          table="${HEALTH_TABLE:-Project}"
+          endpoint="${SUPABASE_URL%/}/rest/v1/${table}?select=id&limit=1"
+
+          for attempt in 1 2 3; do
+            echo "Attempt ${attempt}: ${SUPABASE_URL%/}/rest/v1/${table}"
+
+            http_code=$(curl -sS -o response.txt -w '%{http_code}' \
+              --max-time 30 \
+              -H "apikey: ${SUPABASE_ANON_KEY}" \
+              -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+              "${endpoint}") || http_code="000"
+
+            case "${http_code}" in
+              200|206)
+                echo "Supabase is awake (HTTP ${http_code})"
+                echo "- Supabase REST: awake (HTTP ${http_code})" >> "${GITHUB_STEP_SUMMARY}"
+                exit 0
+                ;;
+              401|403)
+                echo "::error::Supabase rejected the anon key (HTTP ${http_code}). Rotate the NEXT_PUBLIC_SUPABASE_ANON_KEY secret."
+                cat response.txt; echo
+                exit 1
+                ;;
+              404)
+                echo "::error::Table '${table}' not found (HTTP 404). Set the HEALTH_CHECK_TABLE repo variable to an existing table."
+                exit 1
+                ;;
+            esac
+
+            echo "::warning::Unexpected HTTP ${http_code}"
+            cat response.txt; echo
+            if [ "${attempt}" -lt 3 ]; then sleep 20; fi
+          done
+
+          echo "::error::Supabase did not respond successfully after 3 attempts - the project may already be paused (restore it from the dashboard)."
+          exit 1
+
+      # --- Probe 2: the deployed app (optional, never fails the job) -------
+      - name: Ping app health endpoint
+        continue-on-error: true
+        env:
+          # Prefer the repo VARIABLE (plainly visible and easy to edit when
+          # the domain changes); falls back to a secret of the same name.
+          HEALTH_URL: ${{ vars.HEALTH_CHECK_URL || secrets.HEALTH_CHECK_URL }}
+          HEALTH_SECRET: ${{ secrets.HEALTH_CHECK_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${HEALTH_URL:-}" ]; then
+            echo "HEALTH_CHECK_URL is not set - skipping the app probe."
+            echo "- App endpoint: skipped (no HEALTH_CHECK_URL)" >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+
+          auth_args=()
+          if [ -n "${HEALTH_SECRET:-}" ]; then
+            auth_args=(-H "Authorization: Bearer ${HEALTH_SECRET}")
+          fi
+
+          http_code=$(curl -sS -o response.json -w '%{http_code}' \
+            --max-time 30 \
+            "${auth_args[@]}" \
+            "${HEALTH_URL%/}/api/health") || http_code="000"
+
+          cat response.json 2>/dev/null; echo
+
+          if [ "${http_code}" = "200" ]; then
+            echo "- App endpoint: ok (HTTP 200)" >> "${GITHUB_STEP_SUMMARY}"
+          else
+            echo "::warning::App health endpoint returned HTTP ${http_code} at ${HEALTH_URL%/}/api/health - check whether the deployment URL changed."
+            echo "- App endpoint: HTTP ${http_code} (check HEALTH_CHECK_URL)" >> "${GITHUB_STEP_SUMMARY}"
+          fi
