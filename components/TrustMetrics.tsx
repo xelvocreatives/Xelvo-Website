@@ -18,8 +18,8 @@ export function TrustMetrics() {
     },
     {
       icon: TrendingUp,
-      number: 4.7,
-      prefix: "",
+      number: 4,
+      prefix: ".7",
       suffix: "+",
       label: "Successful Rating",
     },
