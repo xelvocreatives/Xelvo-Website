@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -11,6 +11,10 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "Xelvo Creatives",
   description: "Xelvo Creatives Agency",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#FF6600",
 };
 
 export default function RootLayout({

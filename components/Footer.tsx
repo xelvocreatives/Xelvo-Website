@@ -4,6 +4,7 @@ import {
   FaInstagram,
   FaLinkedinIn,
   FaBehance,
+  FaPinterestP,
 } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
@@ -26,6 +27,7 @@ export function Footer() {
         { title: "Featured", href: "#featured", icon: null },
         { title: "Portfolio", href: "/portfolio", icon: null },
         { title: "Testimonials", href: "#testimonials", icon: null },
+        { title: "Blog", href: "/blog", icon: null },
         { title: "Contact", href: "#contact", icon: null },
       ],
     },
@@ -33,6 +35,7 @@ export function Footer() {
       title: "Services",
       links: [
         { title: "Brand Identity", href: "#services", icon: null },
+        { title: "Event Branding", href: "#services", icon: null },
         { title: "Social Graphics", href: "#services", icon: null },
         { title: "Web Design", href: "#services", icon: null },
         { title: "Marketing", href: "#services", icon: null },
@@ -73,6 +76,10 @@ export function Footer() {
         {
           icon: FaBehance,
           href: "https://www.behance.net/xelvocreatives",
+        },
+        {
+          icon: FaPinterestP,
+          href: "https://www.pinterest.com/xelvocreatives",
         },
       ],
     },

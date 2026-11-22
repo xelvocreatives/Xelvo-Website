@@ -54,34 +54,43 @@ export function Services() {
 
       {/* Service Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full place-items-center">
-        {services.map((service, index) => (
-          <div
-            key={index}
-            className="w-full max-w-[315px] h-auto min-h-[385px] flex flex-col justify-between px-[21px] py-[24px] rounded-[20px] bg-[#FF6600] cursor-pointer transition-all duration-300 hover:scale-105 hover:bg-white group border border-transparent shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
-          >
-            <div className="flex flex-col gap-6">
-              <div className="w-[21px] h-[21px] rounded-full bg-white flex items-center justify-center shrink-0 group-hover:bg-[#FF6600] group-hover:text-white" />
-              <h3 className="text-[26px] font-bold leading-[31px] text-white group-hover:text-black">
-                {service.title}
-              </h3>
+        {services.map((service, index) => {
+          // Center card is always shown in its hover (white) state
+          const featured = index === 1;
+          const text = featured ? "text-black" : "text-white group-hover:text-black";
+          const dot = featured ? "bg-[#FF6600]" : "bg-white group-hover:bg-[#FF6600]";
 
-              <p className="text-[16px] font-medium leading-[24px] text-white group-hover:text-black">
-                {service.description}
-              </p>
-              <ul className="flex flex-col gap-2 mt-4">
-                {service.features.map((feature, index) => (
-                  <li
-                    key={index}
-                    className="flex items-center gap-2 text-[16px] font-medium leading-[24px] text-white group-hover:text-black"
-                  >
-                    <span className="w-[7px] h-[7px] rounded-full bg-white group-hover:bg-[#FF6600] flex items-center justify-center shrink-0" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
+          return (
+            <div
+              key={index}
+              className={`w-full max-w-[315px] h-auto min-h-[385px] flex flex-col justify-between px-[21px] py-[24px] rounded-[20px] cursor-pointer transition-all duration-300 group border border-transparent shadow-[0_4px_24px_rgba(0,0,0,0.5)] ${
+                featured ? "bg-white scale-105" : "bg-[#FF6600] hover:scale-105 hover:bg-white"
+              }`}
+            >
+              <div className="flex flex-col gap-6">
+                <div className={`w-[21px] h-[21px] rounded-full flex items-center justify-center shrink-0 ${dot}`} />
+                <h3 className={`text-[26px] font-bold leading-[31px] ${text}`}>
+                  {service.title}
+                </h3>
+
+                <p className={`text-[16px] font-medium leading-[24px] ${text}`}>
+                  {service.description}
+                </p>
+                <ul className="flex flex-col gap-2 mt-4">
+                  {service.features.map((feature, index) => (
+                    <li
+                      key={index}
+                      className={`flex items-center gap-2 text-[16px] font-medium leading-[24px] ${text}`}
+                    >
+                      <span className={`w-[7px] h-[7px] rounded-full flex items-center justify-center shrink-0 ${dot}`} />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       <div className="flex flex-col justify-center items-center gap-5">
         <p className="text-[16px] font-medium leading-[24px] text-white">
