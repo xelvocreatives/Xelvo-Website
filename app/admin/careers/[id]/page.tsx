@@ -1,255 +1,158 @@
-import { Application } from "@/types";
-import { getApplication } from "@/lib/data";
-import { updateApplicationStatus } from "@/app/actions/career";
 import Link from "next/link";
 import {
-  ArrowLeft,
-  Mail,
-  MessageSquare,
-  FileText,
-  User,
   Briefcase,
-  Clock,
-  MapPin,
+  CalendarDays,
   ExternalLink,
-  Target,
-  ShieldCheck,
-  Calendar,
+  FileText,
+  Mail,
+  MapPin,
+  MessageCircle,
+  TrendingUp,
 } from "lucide-react";
+import { InsightNote } from "@/components/admin/insight-note";
+import { getApplication } from "@/lib/data";
+import { formatDate, timeAgo } from "@/lib/admin-format";
+import { PageHeader } from "@/components/admin/kit/page-header";
+import { StatusPill } from "@/components/admin/kit/status-pill";
+import { XaAvatar } from "@/components/admin/kit/avatar";
+import { EmptyState } from "@/components/admin/kit/empty-state";
+import { XaButton } from "@/components/admin/kit/button";
+import { ContactButtons } from "@/components/admin/contact-buttons";
+import { StatusControl } from "@/components/admin/status-control";
+import { DeleteRecordButton } from "@/components/admin/delete-record-button";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminCareerDetail({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const app = await getApplication((await params).id);
+  return { title: app ? `${app.fullName} · Application` : "Application not found" };
+}
+
+export default async function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const app = await getApplication(id);
 
   if (!app) {
     return (
-      <div className="text-white p-10 text-center space-y-4">
-        <h2 className="text-2xl font-black text-red-500 uppercase tracking-tight">
-          Application not found
-        </h2>
-        <Link
-          href="/admin/careers"
-          className="text-[#FF6600] font-black uppercase tracking-widest text-xs hover:underline block mt-4"
-        >
-          Return to Talent Pool
-        </Link>
-      </div>
+      <EmptyState
+        className="mt-10"
+        icon={<Briefcase />}
+        title="This application doesn't exist"
+        description="It may have been deleted, or the link is wrong."
+        action={
+          <XaButton asChild variant="secondary">
+            <Link href="/admin/careers">Back to all applications</Link>
+          </XaButton>
+        }
+      />
     );
   }
 
-  const application = app as Application;
-
-  // WhatsApp link generation
-  const whatsappNumber = application.whatsapp.replace(/\D/g, "");
-  const whatsappLink = `https://wa.me/${whatsappNumber}?text=Hi ${application.fullName}, I'm reaching out from Xelvo Creatives regarding your application for the ${application.position} position.`;
+  const where = app.locationType === "remote" ? "Remote" : `On-site${app.locationDetail ? ` · ${app.locationDetail}` : ""}`;
+  const details = [
+    { icon: Briefcase, label: "Role", value: app.position },
+    { icon: TrendingUp, label: "Experience", value: app.experience },
+    { icon: MapPin, label: "Work preference", value: where },
+    { icon: Mail, label: "Email", value: app.email, href: `mailto:${app.email}` },
+    { icon: MessageCircle, label: "WhatsApp", value: app.whatsapp },
+    { icon: CalendarDays, label: "Applied", value: formatDate(app.createdAt, true) },
+  ];
+  const cvName = decodeURIComponent(app.resumeUrl.split("/").pop() ?? "CV");
+  const cvType = cvName.split(".").pop()?.toUpperCase() ?? "File";
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10 animate-fade-in pb-20">
-      <Link
-        href="/admin/careers"
-        className="inline-flex items-center gap-3 text-gray-500 hover:text-white transition-all group font-black uppercase tracking-[0.2em] text-[10px]"
-      >
-        <ArrowLeft
-          size={14}
-          className="group-hover:-translate-x-1 transition-transform text-[#FF6600]"
-        />
-        Back to Talent Pulse
-      </Link>
+    <>
+      <PageHeader
+        back={{ href: "/admin/careers", label: "All applications" }}
+        leading={<XaAvatar name={app.fullName} size="lg" className="hidden sm:inline-flex" />}
+        title={app.fullName}
+        description={
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <StatusPill kind="application" status={app.status} />
+            <span>{app.position}</span>
+            <span>Applied {timeAgo(app.createdAt)}</span>
+          </span>
+        }
+      />
 
-      <div className="bg-[#181818] border border-[#222] rounded-[40px] overflow-hidden shadow-2xl">
-        {/* Header Section */}
-        <div className="p-10 lg:p-16 bg-linear-to-br from-[#1A1A1A] to-[#0A0A0A] border-b border-[#222]">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
-            <div className="flex items-start gap-8">
-              <div className="w-24 h-24 rounded-[32px] bg-[#FF6600]/10 flex items-center justify-center text-[#FF6600] border border-[#FF6600]/20 shadow-2xl">
-                <User size={48} />
-              </div>
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF6600]">
-                    Candidate Record
-                  </span>
-                  <span className="w-1 h-1 rounded-full bg-gray-800" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
-                    ID: {application.id.slice(0, 8)}
-                  </span>
-                </div>
-                <h1 className="text-5xl font-black text-white tracking-tight">
-                  {application.fullName}
-                </h1>
-                <div className="flex flex-wrap gap-6 mt-6">
-                  <div className="flex items-center gap-2.5 text-gray-400 text-sm font-bold bg-white/5 px-4 py-2 rounded-xl border border-white/5">
-                    <Briefcase size={16} className="text-[#FF6600]" />
-                    {application.position}
-                  </div>
-                  <div className="flex items-center gap-2.5 text-gray-400 text-sm font-bold bg-white/5 px-4 py-2 rounded-xl border border-white/5">
-                    <MapPin size={16} className="text-[#FF6600]" />
-                    {application.locationType === "remote"
-                      ? "Remote"
-                      : application.locationDetail}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-6">
-              <div className="flex items-center gap-4 justify-end">
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">
-                  Recruitment State
-                </span>
-                <span className="px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-lg shadow-blue-500/5">
-                  {application.status}
-                </span>
-              </div>
-
-              <div className="flex gap-3">
-                <a
-                  href={whatsappLink}
-                  target="_blank"
-                  className="flex-1 flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#128C7E] text-white px-8 py-4 rounded-[12px] font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#25D366]/10"
-                >
-                  <MessageSquare size={18} /> WhatsApp
-                </a>
-                <a
-                  href={`mailto:${application.email}`}
-                  className="flex-1 flex items-center justify-center gap-3 bg-[#FF6600] hover:bg-[#FF7700] text-white px-8 py-4 rounded-[12px] font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#FF6600]/10"
-                >
-                  <Mail size={18} /> Direct Email
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-12">
-          {/* Left Column: Details */}
-          <div className="lg:col-span-8 p-10 lg:p-16 space-y-16 border-r border-[#222]">
-            {/* AI Insight */}
-            {application.aiInsight && (
-              <div className="relative overflow-hidden bg-linear-to-br from-[#FF6600]/10 to-transparent border border-[#FF6600]/20 p-10 rounded-[32px] shadow-2xl">
-                <div className="absolute top-0 right-0 p-6 opacity-5">
-                  <ShieldCheck size={140} className="text-[#FF6600]" />
-                </div>
-                <h3 className="text-[#FF6600] text-[10px] font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-[#FF6600] animate-pulse" />{" "}
-                  AI Selection Engine Insight
-                </h3>
-                <p className="text-gray-100 text-2xl font-medium leading-relaxed italic z-10 relative">
-                  &ldquo;{application.aiInsight}&rdquo;
-                </p>
-              </div>
-            )}
-
-            <div className="space-y-8">
-              <h3 className="text-white text-2xl font-black flex items-center gap-4 tracking-tight uppercase">
-                <User size={24} className="text-[#FF6600]" />
-                Candidate Core
-              </h3>
-              <div className="p-10 bg-white/5 border border-white/5 rounded-[32px] leading-relaxed text-gray-300 text-lg italic">
-                {application.bio}
-              </div>
-            </div>
-
-            <div className="space-y-8">
-              <h3 className="text-white text-2xl font-black flex items-center gap-4 tracking-tight uppercase">
-                <Target size={24} className="text-[#FF6600]" />
-                Motivation Matrix
-              </h3>
-              <div className="p-10 bg-white/5 border border-white/5 rounded-[32px] leading-relaxed text-gray-300 text-lg italic">
-                {application.motivation}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Meta & Actions */}
-          <div className="lg:col-span-4 p-10 lg:p-12 bg-[#0C0C0C] space-y-12">
-            <div className="space-y-8">
-              <h3 className="text-gray-600 text-[10px] font-black uppercase tracking-[0.3em]">
-                Verification Document
-              </h3>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="space-y-6">
+          <section className="rounded-2xl border border-xa-line bg-xa-panel p-5 sm:p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
               <a
-                href={application.resumeUrl}
+                href={app.resumeUrl}
                 target="_blank"
-                className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-[24px] hover:border-[#FF6600]/40 transition-all group shadow-2xl hover:translate-y-[-4px] duration-500"
+                rel="noreferrer"
+                className="group flex min-w-0 items-center gap-4"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-[#FF6600]/10 flex items-center justify-center text-[#FF6600] border border-[#FF6600]/10">
-                    <FileText size={24} />
-                  </div>
-                  <div>
-                    <div className="text-white font-black text-sm uppercase tracking-tight">
-                      RESUME / CV
-                    </div>
-                    <div className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">
-                      External Asset
-                    </div>
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-xa-accent/12 text-[#ff8a3d]">
+                  <FileText className="size-6" aria-hidden />
+                </span>
+                <span className="min-w-0">
+                  <span className="flex items-center gap-1.5 font-bold text-xa-ink group-hover:underline">
+                    Open CV
+                    <ExternalLink className="size-3.5 text-xa-muted" aria-hidden />
+                  </span>
+                  <span className="block truncate text-sm text-xa-muted">{cvType} · opens in a new tab</span>
+                </span>
+              </a>
+              <ContactButtons
+                name={app.fullName}
+                email={app.email}
+                phone={app.whatsapp}
+                whatsappMessage={`Hi ${app.fullName}, I'm reaching out from Xelvo Creatives about your application for the ${app.position} role.`}
+                emailSubject={`Your ${app.position} application at Xelvo Creatives`}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-xa-line bg-xa-panel p-5 sm:p-6">
+            <h2 className="mb-3 text-sm font-semibold text-xa-muted">About them</h2>
+            <p className="max-w-[68ch] text-[17px] leading-[1.7] whitespace-pre-line text-xa-ink">{app.bio}</p>
+          </section>
+
+          <section className="rounded-2xl border border-xa-line bg-xa-panel p-5 sm:p-6">
+            <h2 className="mb-3 text-sm font-semibold text-xa-muted">Why they want to join</h2>
+            <p className="max-w-[68ch] text-[17px] leading-[1.7] whitespace-pre-line text-xa-ink">{app.motivation}</p>
+          </section>
+
+          <InsightNote text={app.aiInsight} source="application" />
+        </div>
+
+        <aside className="space-y-6">
+          <section className="rounded-2xl border border-xa-line bg-xa-panel p-4">
+            <h2 className="mb-3 px-1 text-sm font-semibold text-xa-muted">Where is this application?</h2>
+            <StatusControl kind="application" id={app.id} status={app.status} />
+          </section>
+
+          <section className="rounded-2xl border border-xa-line bg-xa-panel p-5">
+            <h2 className="mb-4 text-sm font-semibold text-xa-muted">Details</h2>
+            <dl className="space-y-4">
+              {details.map(({ icon: Icon, label, value, href }) => (
+                <div key={label} className="flex gap-3">
+                  <Icon className="mt-0.5 size-4 shrink-0 text-xa-faint" aria-hidden />
+                  <div className="min-w-0">
+                    <dt className="text-xs text-xa-muted">{label}</dt>
+                    <dd className="text-sm font-medium break-words text-xa-ink">
+                      {href ? (
+                        <a href={href} className="hover:text-xa-accent hover:underline">
+                          {value}
+                        </a>
+                      ) : (
+                        value
+                      )}
+                    </dd>
                   </div>
                 </div>
-                <ExternalLink
-                  size={18}
-                  className="text-gray-600 group-hover:text-[#FF6600] transition-colors"
-                />
-              </a>
-            </div>
+              ))}
+            </dl>
+          </section>
 
-            <div className="space-y-8">
-              <h3 className="text-gray-600 text-[10px] font-black uppercase tracking-[0.3em]">
-                Hiring Pipeline
-              </h3>
-              <div className="flex flex-col gap-4">
-                {["reviewing", "contacted", "hired", "rejected"].map(
-                  (status) => (
-                    <form
-                      key={status}
-                      action={async () => {
-                        "use server";
-                        await updateApplicationStatus(application.id, status);
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        disabled={application.status === status}
-                        className={`w-full py-4 px-6 rounded-[18px] text-[11px] font-black uppercase tracking-[0.2em] transition-all ${
-                          application.status === status
-                            ? "bg-white/5 border border-white/10 text-gray-700 cursor-default"
-                            : "bg-white/5 border border-white/5 text-gray-400 hover:border-[#FF6600]/40 hover:text-white hover:bg-[#FF6600]/5"
-                        }`}
-                      >
-                        {application.status === status ? "✓ " : ""}
-                        TRANSITION TO {status}
-                      </button>
-                    </form>
-                  ),
-                )}
-              </div>
-            </div>
-
-            <div className="pt-10 border-t border-white/5 space-y-4">
-              <div className="flex items-center gap-3 text-gray-700">
-                <Calendar size={14} className="text-[#FF6600]/30" />
-                <span className="text-[10px] font-black uppercase tracking-widest">
-                  Received:{" "}
-                  {new Date(application.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-700">
-                <Clock size={14} className="text-[#FF6600]/30" />
-                <span className="text-[10px] font-black uppercase tracking-widest">
-                  Modified:{" "}
-                  {new Date(application.updatedAt).toLocaleTimeString()}
-                </span>
-              </div>
-            </div>
+          <div className="px-1">
+            <DeleteRecordButton kind="application" id={app.id} name={app.fullName} />
           </div>
-        </div>
+        </aside>
       </div>
-    </div>
+    </>
   );
 }

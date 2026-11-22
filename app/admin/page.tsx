@@ -1,217 +1,275 @@
-import { getDashboardData } from "@/lib/data";
-import {
-  MessageSquare,
-  FolderKanban,
-  Star,
-  ArrowUpRight,
-  UserPlus,
-  Zap,
-  Clock,
-  Briefcase,
-} from "lucide-react";
-import { Inquiry, Application } from "@/types";
 import Link from "next/link";
+import { ArrowRight, Briefcase, CheckCircle2, MessageSquareText, Plus, Quote, Star } from "lucide-react";
+import { getAllProjects, getAllTestimonials, getNeedsReply } from "@/lib/data";
+import { greeting, pluralize, showsOn, timeAgo, todayLabel } from "@/lib/admin-format";
+import { XaButton } from "@/components/admin/kit/button";
+import { XaAvatar } from "@/components/admin/kit/avatar";
+import { SectionHeading } from "@/components/admin/kit/page-header";
+import { EmptyState } from "@/components/admin/kit/empty-state";
+import { ContactButtons } from "@/components/admin/contact-buttons";
+import { ProjectTile } from "@/components/admin/project-tile";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Home" };
 
-export default async function AdminDashboard() {
-  const {
-    inquiryCount,
-    projectCount,
-    testimonialCount,
-    applicationCount,
-    recentInquiries,
-    recentApplications,
-  } = await getDashboardData();
+type ReplyItem = {
+  id: string;
+  kind: "lead" | "application";
+  name: string;
+  email: string;
+  phone: string | null;
+  about: string;
+  createdAt: string;
+};
 
-  const stats = [
-    {
-      label: "Business Leads",
-      value: inquiryCount,
-      icon: MessageSquare,
-      color: "from-blue-500 to-cyan-400",
-      glow: "shadow-blue-500/20",
-      href: "/admin/inquiries",
-    },
-    {
-      label: "Talent Pool",
-      value: applicationCount,
-      icon: UserPlus,
-      color: "from-[#FF6600] to-[#FF8800]",
-      glow: "shadow-[#FF6600]/20",
-      href: "/admin/careers",
-    },
-    {
-      label: "Live Projects",
-      value: projectCount,
-      icon: FolderKanban,
-      color: "from-purple-500 to-pink-500",
-      glow: "shadow-purple-500/20",
-      href: "/admin/projects",
-    },
-    {
-      label: "Client Love",
-      value: testimonialCount,
-      icon: Star,
-      color: "from-yellow-400 to-orange-500",
-      glow: "shadow-yellow-500/20",
-      href: "/admin/testimonials",
-    },
-  ];
+export default async function AdminHome() {
+  const [{ leads, applications }, projects, testimonials] = await Promise.all([
+    getNeedsReply(),
+    getAllProjects(),
+    getAllTestimonials(),
+  ]);
+
+  const waiting: ReplyItem[] = [
+    ...leads.map((l) => ({
+      id: l.id,
+      kind: "lead" as const,
+      name: l.name,
+      email: l.email,
+      phone: l.phone,
+      about: [l.service, l.company].filter(Boolean).join(" · ") || "General enquiry",
+      createdAt: l.createdAt,
+    })),
+    ...applications.map((a) => ({
+      id: a.id,
+      kind: "application" as const,
+      name: a.fullName,
+      email: a.email,
+      phone: a.whatsapp,
+      about: `Applied for ${a.position}`,
+      createdAt: a.createdAt,
+    })),
+  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  const featured = projects.filter((p) => p.isFeatured);
+  // The wall never leaves empty cells: 1, 2, 3 or 5 tiles (4 projects show 3).
+  const ordered = [...featured, ...projects.filter((p) => !p.isFeatured)];
+  const wallSize = ordered.length >= 5 ? 5 : ordered.length === 4 ? 3 : ordered.length;
+  const wall = ordered.slice(0, wallSize);
+  const wallGrid =
+    wallSize >= 5
+      ? "sm:grid-cols-2 lg:grid-cols-4 lg:grid-rows-2"
+      : wallSize === 3
+        ? "sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2"
+        : wallSize === 2
+          ? "sm:grid-cols-2"
+          : "";
+  const hero = wallSize >= 3;
 
   return (
-    <div className="space-y-12 animate-fade-in pb-10">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
-        <div>
-          <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-            System Core
+    <div className="space-y-14">
+      <header>
+        <p className="text-sm font-medium text-xa-muted">{todayLabel()}</p>
+        <h1 className="mt-1 text-[30px] leading-tight font-bold tracking-[-0.02em] text-xa-ink sm:text-[38px]">
+          {greeting()}
+        </h1>
+        <p className="mt-2 text-[15px] text-xa-muted">
+          {waiting.length > 0
+            ? `${pluralize(waiting.length, "person is", "people are")} waiting for a reply.`
+            : "Everyone has a reply. Here's your studio at a glance."}
+        </p>
+      </header>
+
+      {/* Needs your reply */}
+      <section aria-labelledby="reply-heading">
+        <div className="mb-4 flex items-end justify-between gap-4">
+          <h2 id="reply-heading" className="flex items-center gap-2.5 text-lg font-bold text-xa-ink">
+            Needs your reply
+            {waiting.length > 0 && (
+              <span className="rounded-full bg-xa-accent px-2 py-0.5 text-xs font-bold text-xa-on-accent tabular-nums">
+                {waiting.length}
+              </span>
+            )}
           </h2>
-          <p className="text-gray-400 mt-2 font-medium italic text-sm md:text-base">
-            Welcome back to XELVO Command Center.
-          </p>
         </div>
-        <div className="flex items-center gap-3 px-6 py-3 bg-white/3 border border-white/10 rounded-[20px] shadow-2xl w-fit">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">
-            Node Status: Optimal
-          </span>
-        </div>
-      </div>
 
-      {/* Modern Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <Link
-            href={stat.href}
-            key={stat.label}
-            className={`group bg-[#111] border border-white/5 p-8 rounded-[32px] transition-all duration-500 hover:border-[#FF6600]/50 hover:translate-y-[-4px] shadow-2xl ${stat.glow}`}
-          >
-            <div className="flex items-start justify-between">
-              <div
-                className={`p-4 rounded-[18px] bg-linear-to-br ${stat.color} text-white shadow-lg`}
+        {waiting.length === 0 ? (
+          <div className="flex items-center gap-4 rounded-2xl border border-xa-line bg-xa-panel px-5 py-5">
+            <span className="flex size-10 items-center justify-center rounded-full bg-xa-green/12 text-xa-green">
+              <CheckCircle2 className="size-5" aria-hidden />
+            </span>
+            <div>
+              <p className="font-semibold text-xa-ink">You&apos;re all caught up</p>
+              <p className="text-sm text-xa-muted">New leads and job applications will appear here first.</p>
+            </div>
+          </div>
+        ) : (
+          <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {waiting.map((item) => {
+              const href = item.kind === "lead" ? `/admin/inquiries/${item.id}` : `/admin/careers/${item.id}`;
+              return (
+                <li
+                  key={`${item.kind}-${item.id}`}
+                  className="group relative flex flex-col gap-4 rounded-2xl border border-xa-line bg-xa-panel p-4 transition-colors duration-200 hover:border-xa-accent/40"
+                >
+                  <div className="flex items-start gap-3">
+                    <XaAvatar name={item.name} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={href}
+                          className="truncate font-bold text-xa-ink after:absolute after:inset-0 after:rounded-2xl"
+                        >
+                          {item.name}
+                        </Link>
+                        <span className="size-2 shrink-0 rounded-full bg-xa-accent" aria-label="New" />
+                      </div>
+                      <p className="truncate text-sm text-xa-muted">{item.about}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-xa-muted">
+                      {item.kind === "lead" ? (
+                        <MessageSquareText className="size-3.5" aria-hidden />
+                      ) : (
+                        <Briefcase className="size-3.5" aria-hidden />
+                      )}
+                      {item.kind === "lead" ? "Lead" : "Job application"} · {timeAgo(item.createdAt)}
+                    </span>
+                    <div className="relative z-10">
+                      <ContactButtons
+                        compact
+                        name={item.name}
+                        email={item.email}
+                        phone={item.phone}
+                        whatsappMessage={
+                          item.kind === "lead"
+                            ? `Hi ${item.name}, thank you for contacting Xelvo Creatives. I'd love to hear more about your project.`
+                            : `Hi ${item.name}, I'm reaching out from Xelvo Creatives about your job application.`
+                        }
+                        emailSubject={item.kind === "lead" ? "Your enquiry with Xelvo Creatives" : "Your application at Xelvo Creatives"}
+                      />
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {/* Portfolio wall */}
+      <section aria-labelledby="portfolio-heading">
+        <SectionHeading
+          title="Your portfolio"
+          meta={
+            projects.length > 0
+              ? `${pluralize(projects.length, "project")} · ${featured.length} on the home page`
+              : undefined
+          }
+          action={
+            <XaButton asChild variant="primary" size="sm">
+              <Link href="/admin/projects?new=1">
+                <Plus />
+                Add project
+              </Link>
+            </XaButton>
+          }
+        />
+
+        {projects.length === 0 ? (
+          <EmptyState
+            icon={<Plus />}
+            title="Add your first project"
+            description="Projects appear on your website. Add a cover image, a name and a short story about the work."
+            action={
+              <XaButton asChild variant="primary">
+                <Link href="/admin/projects?new=1">Add project</Link>
+              </XaButton>
+            }
+          />
+        ) : (
+          <div className={`grid grid-cols-1 gap-3 ${wallGrid}`}>
+            {wall.map((project, index) => (
+              <Link
+                key={project.id}
+                href={`/admin/projects?edit=${project.id}`}
+                aria-label={`Edit ${project.title}`}
+                className={hero && index === 0 ? "block sm:col-span-2 lg:row-span-2" : "block"}
               >
-                <stat.icon size={26} />
-              </div>
-              <ArrowUpRight
-                size={22}
-                className="text-gray-700 group-hover:text-[#FF6600] transition-colors"
-              />
-            </div>
-            <div className="mt-8">
-              <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.3em]">
-                {stat.label}
-              </p>
-              <h3 className="text-5xl md:text-6xl font-black text-white mt-3 tabular-nums tracking-tighter">
-                {stat.value}
-              </h3>
-            </div>
+                <ProjectTile
+                  project={project}
+                  size={(hero && index === 0) || wallSize === 1 ? "lg" : "md"}
+                  sizes={index === 0 ? "(max-width: 1024px) 100vw, 640px" : undefined}
+                  className={hero && index > 0 ? "lg:aspect-auto lg:h-full lg:min-h-[164px]" : ""}
+                />
+              </Link>
+            ))}
+          </div>
+        )}
+        {projects.length > wall.length && (
+          <Link
+            href="/admin/projects"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-xa-muted hover:text-xa-ink"
+          >
+            See all {projects.length} projects
+            <ArrowRight className="size-4" aria-hidden />
           </Link>
-        ))}
-      </div>
+        )}
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Recent Inquiries */}
-        <div className="lg:col-span-7 bg-[#181818] border border-[#222] rounded-[32px] overflow-hidden shadow-2xl flex flex-col">
-          <div className="p-8 border-b border-[#222] flex items-center justify-between">
-            <h3 className="text-xl font-bold text-white flex items-center gap-3">
-              <Zap size={20} className="text-[#FF6600]" />
-              Pulse: Business Leads
-            </h3>
-            <Link
-              href="/admin/inquiries"
-              className="text-xs font-bold text-[#FF6600] hover:underline"
-            >
-              View All
-            </Link>
-          </div>
-          <div className="p-4 flex-1">
-            {recentInquiries.length > 0 ? (
-              <div className="space-y-2">
-                {recentInquiries.map((lead: Inquiry) => (
-                  <div
-                    key={lead.id}
-                    className="p-6 rounded-[24px] bg-white/2 border border-transparent hover:border-white/5 hover:bg-white/4 transition-all flex items-center justify-between group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400">
-                        <MessageSquare size={18} />
-                      </div>
-                      <div>
-                        <div className="text-white font-bold text-sm">
-                          {lead.name}
-                        </div>
-                        <div className="text-gray-500 text-[10px] flex items-center gap-1.5 uppercase tracking-wider font-bold mt-0.5">
-                          {lead.service || "Brand Growth"}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] font-black text-[#555] uppercase tracking-widest">
-                        {new Date(lead.createdAt).toLocaleDateString()}
-                      </div>
-                      <div className="text-[9px] text-gray-600 italic mt-0.5 flex items-center gap-1 justify-end">
-                        <Clock size={10} />{" "}
-                        {new Date(lead.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </div>
+      {/* Testimonials */}
+      <section aria-labelledby="testimonials-heading">
+        <SectionHeading
+          title="Client testimonials"
+          meta={testimonials.length > 0 ? showsOn(testimonials.length, 9, "the website") : undefined}
+          action={
+            <XaButton asChild variant="secondary" size="sm">
+              <Link href="/admin/testimonials">Manage</Link>
+            </XaButton>
+          }
+        />
+        {testimonials.length === 0 ? (
+          <EmptyState
+            icon={<Quote />}
+            title="No testimonials yet"
+            description="Kind words from clients build trust on your website. Add the first one."
+            action={
+              <XaButton asChild variant="primary">
+                <Link href="/admin/testimonials?new=1">Add testimonial</Link>
+              </XaButton>
+            }
+          />
+        ) : (
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {testimonials.slice(0, 4).map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/admin/testimonials?edit=${t.id}`}
+                  className="flex h-full flex-col gap-4 rounded-2xl border border-xa-line bg-xa-panel p-5 transition-colors hover:border-white/20"
+                >
+                  <div className="flex gap-0.5" aria-label={`${t.rating} out of 5 stars`}>
+                    {Array.from({ length: 5 }, (_, i) => (
+                      <Star
+                        key={i}
+                        className={i < t.rating ? "size-3.5 fill-xa-accent text-xa-accent" : "size-3.5 text-xa-faint"}
+                        aria-hidden
+                      />
+                    ))}
+                  </div>
+                  <p className="line-clamp-3 flex-1 text-sm leading-relaxed text-xa-ink/85">“{t.text}”</p>
+                  <div className="flex items-center gap-3">
+                    <XaAvatar name={t.clientName} src={t.imageUrl} size="sm" />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-xa-ink">{t.clientName}</p>
+                      <p className="truncate text-xs text-xa-muted">{t.company}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center p-12 text-gray-600 italic text-sm">
-                No active leads detected in pulse.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Recent Applications */}
-        <div className="lg:col-span-5 bg-[#181818] border border-[#222] rounded-[32px] overflow-hidden shadow-2xl flex flex-col">
-          <div className="p-8 border-b border-[#222] flex items-center justify-between">
-            <h3 className="text-xl font-bold text-white flex items-center gap-3">
-              <Briefcase size={20} className="text-[#FF6600]" />
-              Talent Watch
-            </h3>
-            <Link
-              href="/admin/careers"
-              className="text-xs font-bold text-[#FF6600] hover:underline"
-            >
-              View All
-            </Link>
-          </div>
-          <div className="p-4 flex-1">
-            {recentApplications.length > 0 ? (
-              <div className="space-y-2">
-                {recentApplications.map((app: Application) => (
-                  <div
-                    key={app.id}
-                    className="p-6 rounded-[24px] bg-white/2 border border-transparent hover:border-white/5 hover:bg-white/4 transition-all flex items-center gap-4 group"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-[#FF6600]/10 flex items-center justify-center text-[#FF6600]">
-                      <Briefcase size={18} />
-                    </div>
-                    <div>
-                      <div className="text-white font-bold text-sm">
-                        {app.fullName}
-                      </div>
-                      <div className="text-[#FF6600] text-[10px] font-black uppercase tracking-widest mt-0.5">
-                        {app.position}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center p-12 text-gray-600 italic text-sm">
-                Talent watch is quiet.
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }

@@ -1,248 +1,122 @@
-import { Inquiry } from "@/types";
-import { getInquiry } from "@/lib/data";
-import { updateInquiryStatus } from "@/app/actions/inquire";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Mail,
-  MessageSquare,
-  User,
-  Building2,
-  Zap,
-  Phone,
-  ShieldCheck,
-  Calendar,
-  Clock,
-} from "lucide-react";
+import { Building2, CalendarDays, Mail, Phone } from "lucide-react";
+import { InsightNote } from "@/components/admin/insight-note";
+import { getInquiry } from "@/lib/data";
+import { formatDate, timeAgo } from "@/lib/admin-format";
+import { PageHeader } from "@/components/admin/kit/page-header";
+import { StatusPill } from "@/components/admin/kit/status-pill";
+import { XaAvatar } from "@/components/admin/kit/avatar";
+import { EmptyState } from "@/components/admin/kit/empty-state";
+import { XaButton } from "@/components/admin/kit/button";
+import { ContactButtons } from "@/components/admin/contact-buttons";
+import { StatusControl } from "@/components/admin/status-control";
+import { DeleteRecordButton } from "@/components/admin/delete-record-button";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminInquiryDetail({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const lead = await getInquiry((await params).id);
+  return { title: lead ? `${lead.name} · Lead` : "Lead not found" };
+}
+
+export default async function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const lead = await getInquiry(id);
 
   if (!lead) {
     return (
-      <div className="text-white p-10 text-center space-y-4">
-        <h2 className="text-2xl font-black text-red-500 uppercase tracking-tight">
-          Inquiry not found
-        </h2>
-        <Link
-          href="/admin/inquiries"
-          className="text-[#FF6600] font-black uppercase tracking-widest text-xs hover:underline block mt-4"
-        >
-          Return to Business leads
-        </Link>
-      </div>
+      <EmptyState
+        className="mt-10"
+        icon={<Mail />}
+        title="This lead doesn't exist"
+        description="It may have been deleted, or the link is wrong."
+        action={
+          <XaButton asChild variant="secondary">
+            <Link href="/admin/inquiries">Back to all leads</Link>
+          </XaButton>
+        }
+      />
     );
   }
 
-  const inquiry = lead as Inquiry;
-
-  // Contact links
-  const whatsappNumber = inquiry.phone?.replace(/\D/g, "") || "";
-  const whatsappLink = `https://wa.me/${whatsappNumber}?text=Hi ${inquiry.name}, thank you for reaching out to Xelvo Creatives regarding ${inquiry.service || "our services"}. I'd love to discuss how we can help your brand grow.`;
+  const details = [
+    { icon: Mail, label: "Email", value: lead.email, href: `mailto:${lead.email}` },
+    lead.phone && { icon: Phone, label: "Phone", value: lead.phone, href: `tel:${lead.phone.replace(/[^\d+]/g, "")}` },
+    lead.company && { icon: Building2, label: "Company", value: lead.company },
+    { icon: CalendarDays, label: "Received", value: formatDate(lead.createdAt, true) },
+  ].filter(Boolean) as { icon: typeof Mail; label: string; value: string; href?: string }[];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-10 animate-fade-in pb-20">
-      <Link
-        href="/admin/inquiries"
-        className="inline-flex items-center gap-3 text-gray-500 hover:text-white transition-all group font-black uppercase tracking-[0.2em] text-[10px]"
-      >
-        <ArrowLeft
-          size={14}
-          className="group-hover:-translate-x-1 transition-transform text-[#FF6600]"
-        />
-        Back to Lead Pulse
-      </Link>
+    <>
+      <PageHeader
+        back={{ href: "/admin/inquiries", label: "All leads" }}
+        leading={<XaAvatar name={lead.name} size="lg" className="hidden sm:inline-flex" />}
+        title={lead.name}
+        description={
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <StatusPill kind="lead" status={lead.status} />
+            <span>{lead.service || "General enquiry"}</span>
+            <span>Received {timeAgo(lead.createdAt)}</span>
+          </span>
+        }
+      />
 
-      <div className="bg-[#181818] border border-[#222] rounded-[40px] overflow-hidden shadow-2xl">
-        {/* Header Section */}
-        <div className="p-10 lg:p-16 bg-linear-to-br from-[#1A1A1A] to-[#0A0A0A] border-b border-[#222]">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10">
-            <div className="flex items-start gap-8">
-              <div className="w-24 h-24 rounded-[32px] bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20 shadow-2xl">
-                <User size={48} />
-              </div>
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF6600]">
-                    Strategic Lead
-                  </span>
-                  <span className="w-1 h-1 rounded-full bg-gray-800" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500">
-                    ID: {inquiry.id.slice(0, 8)}
-                  </span>
-                </div>
-                <h1 className="text-5xl font-black text-white tracking-tight">
-                  {inquiry.name}
-                </h1>
-                <div className="flex flex-wrap gap-6 mt-6">
-                  <div className="flex items-center gap-2.5 text-gray-400 text-sm font-bold bg-white/5 px-4 py-2 rounded-xl border border-white/5">
-                    <Building2 size={16} className="text-[#FF6600]" />
-                    {inquiry.company || "Individual Lead"}
-                  </div>
-                  <div className="flex items-center gap-2.5 text-gray-400 text-sm font-bold bg-white/5 px-4 py-2 rounded-xl border border-white/5">
-                    <Zap size={16} className="text-[#FF6600]" />
-                    {inquiry.service || "General Brand Growth"}
-                  </div>
-                </div>
-              </div>
-            </div>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="space-y-6">
+          <section className="rounded-2xl border border-xa-line bg-xa-panel p-5 sm:p-6">
+            <h2 className="mb-3 text-sm font-semibold text-xa-muted">Reply to {lead.name.split(" ")[0]}</h2>
+            <ContactButtons
+              showCall
+              name={lead.name}
+              email={lead.email}
+              phone={lead.phone}
+              whatsappMessage={`Hi ${lead.name}, thank you for contacting Xelvo Creatives about ${lead.service || "your project"}. I'd love to hear more about what you have in mind.`}
+              emailSubject={`Your ${lead.service || "project"} enquiry with Xelvo Creatives`}
+            />
+          </section>
 
-            <div className="flex flex-col gap-6">
-              <div className="flex items-center gap-4 justify-end">
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-black">
-                  Lead Pipeline
-                </span>
-                <span className="px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-lg shadow-blue-500/5">
-                  {inquiry.status}
-                </span>
-              </div>
+          <section className="rounded-2xl border border-xa-line bg-xa-panel p-5 sm:p-6">
+            <h2 className="mb-3 text-sm font-semibold text-xa-muted">Their message</h2>
+            <p className="max-w-[68ch] text-[17px] leading-[1.7] whitespace-pre-line text-xa-ink">{lead.message}</p>
+          </section>
 
-              <div className="flex gap-3">
-                {inquiry.phone && (
-                  <a
-                    href={whatsappLink}
-                    target="_blank"
-                    className="flex-1 flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#128C7E] text-white px-8 py-4 rounded-[12px] font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#25D366]/10"
-                  >
-                    <MessageSquare size={18} /> WhatsApp
-                  </a>
-                )}
-                <a
-                  href={`mailto:${inquiry.email}`}
-                  className="flex-1 flex items-center justify-center gap-3 bg-[#FF6600] hover:bg-[#FF7700] text-white px-8 py-4 rounded-[12px] font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-[#FF6600]/10"
-                >
-                  <Mail size={18} /> Direct Email
-                </a>
-              </div>
-            </div>
-          </div>
+          <InsightNote text={lead.aiInsight} source="message" />
         </div>
 
-        {/* Content Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-12">
-          {/* Left Column: Details */}
-          <div className="lg:col-span-8 p-10 lg:p-16 space-y-16 border-r border-[#222]">
-            {/* AI Business Insight */}
-            {inquiry.aiInsight && (
-              <div className="relative overflow-hidden bg-linear-to-br from-[#FF6600]/10 to-transparent border border-[#FF6600]/20 p-10 rounded-[32px] shadow-2xl">
-                <div className="absolute top-0 right-0 p-6 opacity-5">
-                  <ShieldCheck size={140} className="text-[#FF6600]" />
-                </div>
-                <h3 className="text-[#FF6600] text-[10px] font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-3">
-                  <span className="w-2 h-2 rounded-full bg-[#FF6600] animate-pulse" />{" "}
-                  AI Business Intent Matrix
-                </h3>
-                <p className="text-gray-100 text-2xl font-medium leading-relaxed italic z-10 relative">
-                  &ldquo;{inquiry.aiInsight}&rdquo;
-                </p>
-              </div>
-            )}
+        <aside className="space-y-6">
+          <section className="rounded-2xl border border-xa-line bg-xa-panel p-4">
+            <h2 className="mb-3 px-1 text-sm font-semibold text-xa-muted">Where is this lead?</h2>
+            <StatusControl kind="lead" id={lead.id} status={lead.status} />
+          </section>
 
-            <div className="space-y-8">
-              <h3 className="text-white text-2xl font-black flex items-center gap-4 tracking-tight uppercase">
-                <MessageSquare size={24} className="text-[#FF6600]" />
-                Requirement message
-              </h3>
-              <div className="p-10 bg-white/5 border border-white/5 rounded-[32px] leading-relaxed text-gray-300 text-lg italic">
-                {inquiry.message}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Lead Stats & Actions */}
-          <div className="lg:col-span-4 p-10 lg:p-12 bg-[#0C0C0C] space-y-12">
-            <div className="space-y-8">
-              <h3 className="text-gray-600 text-[10px] font-black uppercase tracking-[0.3em]">
-                Client Meta Info
-              </h3>
-              <div className="space-y-4">
-                <div className="p-6 bg-white/5 border border-white/5 rounded-[24px] flex items-center gap-4 shadow-2xl">
-                  <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/10">
-                    <Mail size={20} />
-                  </div>
-                  <div>
-                    <div className="text-white font-black text-xs uppercase tracking-tight">
-                      Electronic Mail
-                    </div>
-                    <div className="text-gray-500 text-[10px] font-bold mt-1 truncate max-w-[140px]">
-                      {inquiry.email}
-                    </div>
+          <section className="rounded-2xl border border-xa-line bg-xa-panel p-5">
+            <h2 className="mb-4 text-sm font-semibold text-xa-muted">Details</h2>
+            <dl className="space-y-4">
+              {details.map(({ icon: Icon, label, value, href }) => (
+                <div key={label} className="flex gap-3">
+                  <Icon className="mt-0.5 size-4 shrink-0 text-xa-faint" aria-hidden />
+                  <div className="min-w-0">
+                    <dt className="text-xs text-xa-muted">{label}</dt>
+                    <dd className="truncate text-sm font-medium text-xa-ink">
+                      {href ? (
+                        <a href={href} className="hover:text-xa-accent hover:underline">
+                          {value}
+                        </a>
+                      ) : (
+                        value
+                      )}
+                    </dd>
                   </div>
                 </div>
-                {inquiry.phone && (
-                  <div className="p-6 bg-white/5 border border-white/5 rounded-[24px] flex items-center gap-4 shadow-2xl">
-                    <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-400 border border-orange-500/10">
-                      <Phone size={20} />
-                    </div>
-                    <div>
-                      <div className="text-white font-black text-xs uppercase tracking-tight">
-                        Direct Line
-                      </div>
-                      <div className="text-gray-500 text-[10px] font-bold mt-1 tracking-widest">
-                        {inquiry.phone}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+              ))}
+            </dl>
+          </section>
 
-            <div className="space-y-8">
-              <h3 className="text-gray-600 text-[10px] font-black uppercase tracking-[0.3em]">
-                Lead Qualification
-              </h3>
-              <div className="flex flex-col gap-4">
-                {["contacted", "qualified", "converted", "rejected"].map(
-                  (status) => (
-                    <form
-                      key={status}
-                      action={async () => {
-                        "use server";
-                        await updateInquiryStatus(inquiry.id, status);
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        disabled={inquiry.status === status}
-                        className={`w-full py-4 px-6 rounded-[18px] text-[11px] font-black uppercase tracking-[0.2em] transition-all ${
-                          inquiry.status === status
-                            ? "bg-white/5 border border-white/10 text-gray-700 cursor-default"
-                            : "bg-white/5 border border-white/5 text-gray-400 hover:border-[#FF6600]/40 hover:text-white hover:bg-[#FF6600]/5"
-                        }`}
-                      >
-                        {inquiry.status === status ? "✓ " : ""}
-                        MOVE TO {status}
-                      </button>
-                    </form>
-                  ),
-                )}
-              </div>
-            </div>
-
-            <div className="pt-10 border-t border-white/5 space-y-4">
-              <div className="flex items-center gap-3 text-gray-700">
-                <Calendar size={14} className="text-[#FF6600]/30" />
-                <span className="text-[10px] font-black uppercase tracking-widest">
-                  Received: {new Date(inquiry.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-700">
-                <Clock size={14} className="text-[#FF6600]/30" />
-                <span className="text-[10px] font-black uppercase tracking-widest">
-                  Modified: {new Date(inquiry.updatedAt).toLocaleTimeString()}
-                </span>
-              </div>
-            </div>
+          <div className="px-1">
+            <DeleteRecordButton kind="lead" id={lead.id} name={lead.name} />
           </div>
-        </div>
+        </aside>
       </div>
-    </div>
+    </>
   );
 }

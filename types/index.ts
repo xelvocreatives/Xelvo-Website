@@ -5,6 +5,8 @@ export interface Project {
   imageUrl: string | null;
   category: string;
   isFeatured: boolean;
+  /** Position chosen by the admin (lower = earlier). Missing on never-arranged data. */
+  order?: number;
   createdAt: string; // ISO string (stored as a Date in MongoDB)
   updatedAt: string;
 }
@@ -18,6 +20,8 @@ export interface Testimonial {
   socialPlatform: string | null;
   socialLink: string | null;
   imageUrl: string | null;
+  /** Position chosen by the admin (lower = earlier). Missing on never-arranged data. */
+  order?: number;
   createdAt: string;
   updatedAt: string;
 }

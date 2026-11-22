@@ -6,12 +6,30 @@ import { z } from "zod";
 import { isAdmin, UNAUTHORIZED } from "@/lib/auth-guard";
 import { isOwnUploadUrl } from "@/lib/cloudinary";
 import { parseId, testimonials } from "@/lib/db/models";
+import { applyOrder, topOrder, type Orderable } from "@/lib/db/ordering";
+import type { Collection } from "mongodb";
 
 const TestimonialSchema = z.object({
-  clientName: z.string().trim().min(1, "Client Name is required"),
-  company: z.string().trim().min(1, "Company is required"),
-  text: z.string().trim().min(10, "Review text must be at least 10 characters"),
-  rating: z.coerce.number().min(1).max(5),
+  clientName: z
+    .string()
+    .trim()
+    .min(1, "Add the client's name.")
+    .max(80, "Keep the name under 80 characters."),
+  company: z
+    .string()
+    .trim()
+    .min(1, "Add the client's company or brand.")
+    .max(80, "Keep the company under 80 characters."),
+  text: z
+    .string()
+    .trim()
+    .min(10, "The review needs at least 10 characters.")
+    .max(500, "Keep the review under 500 characters."),
+  rating: z.coerce
+    .number()
+    .int()
+    .min(1, "Choose a rating from 1 to 5 stars.")
+    .max(5, "Choose a rating from 1 to 5 stars."),
   socialPlatform: z.string().optional(),
 });
 
@@ -38,12 +56,12 @@ function readForm(formData: FormData) {
     }),
     // Set by the form after the browser uploads the photo to Cloudinary.
     imageUrl: formData.get("imageUrl"),
+    removeImage: formData.get("removeImage") === "1",
   };
 }
 
 function revalidateTestimonialPages() {
-  revalidatePath("/admin/testimonials");
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
   revalidatePath("/");
 }
 
@@ -58,7 +76,7 @@ export async function createTestimonial(
     return {
       ok: false,
       errors: parsed.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Create Testimonial.",
+      message: "Please fix the highlighted fields.",
     };
   }
 
@@ -66,8 +84,10 @@ export async function createTestimonial(
 
   try {
     const now = new Date();
-    await (await testimonials()).insertOne({
+    const col = await testimonials();
+    await col.insertOne({
       _id: new ObjectId(),
+      order: await topOrder(col as unknown as Collection<Orderable>),
       ...fields,
       socialPlatform: socialPlatform || null,
       socialLink: null,
@@ -79,12 +99,12 @@ export async function createTestimonial(
     console.error("Database Error:", error);
     return {
       ok: false,
-      message: "Database Error: Failed to Create Testimonial.",
+      message: "Couldn’t save the testimonial. Please try again.",
     };
   }
 
   revalidateTestimonialPages();
-  return { ok: true, message: "Testimonial Created" };
+  return { ok: true, message: "Testimonial added." };
 }
 
 export async function updateTestimonial(
@@ -97,16 +117,17 @@ export async function updateTestimonial(
   const _id = parseId(id);
   if (!_id) return { ok: false, message: "Testimonial not found." };
 
-  const { parsed, imageUrl } = readForm(formData);
+  const { parsed, imageUrl, removeImage } = readForm(formData);
   if (!parsed.success) {
     return {
       ok: false,
       errors: parsed.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Update Testimonial.",
+      message: "Please fix the highlighted fields.",
     };
   }
 
   const { socialPlatform, ...fields } = parsed.data;
+  const newImage = isOwnUploadUrl(imageUrl, "testimonial") ? imageUrl : null;
 
   try {
     const result = await (await testimonials()).updateOne(
@@ -116,8 +137,9 @@ export async function updateTestimonial(
           ...fields,
           socialPlatform: socialPlatform || null,
           updatedAt: new Date(),
-          // Only replace the photo when a new one was uploaded.
-          ...(isOwnUploadUrl(imageUrl, "testimonial") ? { imageUrl } : {}),
+          // Replace the photo only when a new one was uploaded, or clear it
+          // when the admin removed it.
+          ...(newImage ? { imageUrl: newImage } : removeImage ? { imageUrl: null } : {}),
         },
       },
     );
@@ -128,27 +150,55 @@ export async function updateTestimonial(
     console.error("Database Error:", error);
     return {
       ok: false,
-      message: "Database Error: Failed to Update Testimonial.",
+      message: "Couldn’t save your changes. Please try again.",
     };
   }
 
   revalidateTestimonialPages();
-  return { ok: true, message: "Testimonial Updated" };
+  return { ok: true, message: "Changes saved." };
 }
 
-export async function deleteTestimonial(id: string) {
-  if (!(await isAdmin())) return { message: UNAUTHORIZED };
+export async function deleteTestimonial(
+  id: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
 
   const _id = parseId(id);
-  if (!_id) return { message: "Testimonial not found." };
+  if (!_id) return { ok: false, message: "Testimonial not found." };
 
   try {
     await (await testimonials()).deleteOne({ _id });
   } catch (error) {
     console.error("Database Error:", error);
-    return { message: "Database Error: Failed to Delete Testimonial." };
+    return { ok: false, message: "Couldn’t delete the testimonial. Please try again." };
   }
 
   revalidateTestimonialPages();
-  return { message: "Deleted Testimonial" };
+  return { ok: true, message: "Testimonial deleted." };
+}
+
+/** Saves the drag-and-drop arrangement: `ids` is every testimonial, in order. */
+export async function reorderTestimonials(
+  ids: string[],
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
+
+  const parsed = ids.map(parseId);
+  if (parsed.some((id) => id === null)) return { ok: false, message: "Couldn’t save the new order." };
+
+  try {
+    const outcome = await applyOrder(
+      (await testimonials()) as unknown as Collection<Orderable>,
+      parsed as ObjectId[],
+    );
+    if (outcome === "stale") {
+      return { ok: false, message: "Your testimonials changed in the meantime. Refresh the page and try again." };
+    }
+  } catch (error) {
+    console.error("Reorder error:", error);
+    return { ok: false, message: "Couldn’t save the new order. Please try again." };
+  }
+
+  revalidateTestimonialPages();
+  return { ok: true, message: "Order saved." };
 }

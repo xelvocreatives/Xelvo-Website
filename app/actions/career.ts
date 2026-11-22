@@ -106,8 +106,7 @@ export async function submitApplication(
     };
   }
 
-  revalidatePath("/admin/careers");
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
   return {
     success: true,
     message: "Application submitted successfully!",
@@ -142,7 +141,25 @@ export async function updateApplicationStatus(id: string, status: string) {
     return { success: false, error: "Failed to update status." };
   }
 
-  revalidatePath(`/admin/careers/${id}`);
-  revalidatePath("/admin/careers");
+  revalidatePath("/admin", "layout");
+  return { success: true };
+}
+
+export async function deleteApplication(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!(await isAdmin())) return { success: false, error: UNAUTHORIZED };
+
+  const _id = parseId(id);
+  if (!_id) return { success: false, error: "Application not found." };
+
+  try {
+    await (await applications()).deleteOne({ _id });
+  } catch (error) {
+    console.error("deleteApplication error:", error);
+    return { success: false, error: "Couldn’t delete the application. Please try again." };
+  }
+
+  revalidatePath("/admin", "layout");
   return { success: true };
 }

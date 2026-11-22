@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { AlertTriangle, RotateCcw } from "lucide-react";
+import Link from "next/link";
+import { CloudOff, RotateCcw } from "lucide-react";
+import { XaButton } from "@/components/admin/kit/button";
 
 export default function AdminError({
   error,
@@ -15,29 +17,25 @@ export default function AdminError({
   }, [error]);
 
   return (
-    <div className="p-10 bg-red-500/5 border border-red-500/20 rounded-[32px] text-center space-y-6 max-w-2xl mx-auto">
-      <div className="w-16 h-16 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
-        <AlertTriangle size={28} />
+    <div className="mx-auto mt-10 max-w-lg rounded-2xl border border-xa-line bg-xa-panel p-8 text-center">
+      <span className="mx-auto mb-5 flex size-12 items-center justify-center rounded-full bg-xa-red/12 text-xa-red">
+        <CloudOff className="size-5" aria-hidden />
+      </span>
+      <h1 className="text-xl font-bold text-xa-ink">This page couldn&apos;t load</h1>
+      <p className="mt-2 text-[15px] leading-relaxed text-xa-muted">
+        Usually this means the connection dropped for a moment. Try again; if it keeps happening, contact your
+        developer.
+      </p>
+      {error.digest && <p className="mt-3 text-xs text-xa-muted">Reference: {error.digest}</p>}
+      <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
+        <XaButton variant="primary" onClick={reset}>
+          <RotateCcw />
+          Try again
+        </XaButton>
+        <XaButton asChild variant="secondary">
+          <Link href="/admin">Go to Home</Link>
+        </XaButton>
       </div>
-      <div className="space-y-2">
-        <h2 className="text-2xl font-black text-white tracking-tight">
-          Something went wrong
-        </h2>
-        <p className="text-gray-400">
-          The admin panel couldn&apos;t load this data. If the database was
-          asleep or the connection dropped, trying again usually fixes it.
-        </p>
-        {error.digest && (
-          <p className="text-gray-600 text-xs font-mono">Ref: {error.digest}</p>
-        )}
-      </div>
-      <button
-        onClick={reset}
-        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FF6600] text-white font-bold hover:bg-[#FF7700] transition-colors"
-      >
-        <RotateCcw size={16} />
-        Try again
-      </button>
     </div>
   );
 }

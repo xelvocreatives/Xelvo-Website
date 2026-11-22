@@ -91,7 +91,8 @@ export async function submitInquiry(
       updatedAt: now,
     });
 
-    revalidatePath("/admin/inquiries");
+    revalidatePath("/admin", "layout");
+
     return {
       success: true,
       message:
@@ -131,11 +132,29 @@ export async function updateInquiryStatus(id: string, status: string) {
       { $set: { status: nextStatus, updatedAt: new Date() } },
     );
 
-    revalidatePath(`/admin/inquiries/${id}`);
-    revalidatePath("/admin/inquiries");
+    revalidatePath("/admin", "layout");
     return { success: true };
   } catch (error) {
     console.error("Status update error:", error);
     return { success: false, error: "Failed to update inquiry status." };
   }
+}
+
+export async function deleteInquiry(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!(await isAdmin())) return { success: false, error: UNAUTHORIZED };
+
+  const _id = parseId(id);
+  if (!_id) return { success: false, error: "Lead not found." };
+
+  try {
+    await (await inquiries()).deleteOne({ _id });
+  } catch (error) {
+    console.error("deleteInquiry error:", error);
+    return { success: false, error: "Couldn’t delete the lead. Please try again." };
+  }
+
+  revalidatePath("/admin", "layout");
+  return { success: true };
 }

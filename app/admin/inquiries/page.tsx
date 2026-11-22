@@ -1,153 +1,105 @@
-import { getAllInquiries } from "@/lib/data";
+import { Suspense } from "react";
 import Link from "next/link";
-import { Mail, User, Calendar, Zap, Building2, Target } from "lucide-react";
+import { ChevronRight, MessageSquareText, SearchX } from "lucide-react";
+import { getAllInquiries } from "@/lib/data";
+import { LEAD_STATUS_ORDER, formatDate, statusInfo, timeAgo } from "@/lib/admin-format";
+import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/admin/kit/page-header";
+import { FilterTabs } from "@/components/admin/kit/filter-tabs";
+import { SearchBox } from "@/components/admin/kit/search-box";
+import { StatusPill } from "@/components/admin/kit/status-pill";
+import { XaAvatar } from "@/components/admin/kit/avatar";
+import { EmptyState } from "@/components/admin/kit/empty-state";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Leads" };
 
-export default async function AdminInquiriesPage() {
-  const inquiries = await getAllInquiries();
+export default async function LeadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ status?: string; q?: string }>;
+}) {
+  const { status = "all", q = "" } = await searchParams;
+  const all = await getAllInquiries();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "new":
-        return "bg-blue-500/10 text-blue-400 border border-blue-500/20";
-      case "contacted":
-        return "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20";
-      case "qualified":
-        return "bg-purple-500/10 text-purple-400 border border-purple-500/20";
-      case "converted":
-        return "bg-green-500/10 text-green-400 border border-green-500/20";
-      case "rejected":
-        return "bg-red-500/10 text-red-400 border border-red-500/20";
-      default:
-        return "bg-gray-500/10 text-gray-400 border border-gray-500/20";
-    }
-  };
+  const query = q.trim().toLowerCase();
+  const matchesQuery = (text: (string | null)[]) =>
+    !query || text.some((t) => t?.toLowerCase().includes(query));
+
+  const searched = all.filter((l) => matchesQuery([l.name, l.email, l.company, l.service, l.message, l.phone]));
+  const activeStatus = status === "all" || LEAD_STATUS_ORDER.includes(status) ? status : "all";
+  const leads = activeStatus === "all" ? searched : searched.filter((l) => l.status === activeStatus);
+
+  const tabs = [
+    { value: "all", label: "All", count: searched.length },
+    ...LEAD_STATUS_ORDER.map((s) => ({
+      value: s,
+      label: statusInfo("lead", s).label,
+      count: searched.filter((l) => l.status === s).length,
+    })),
+  ];
 
   return (
-    <div className="space-y-10 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h2 className="text-4xl font-black text-white tracking-tight flex items-center gap-4">
-            <Target className="text-[#FF6600]" size={36} />
-            Lead Pulse
-          </h2>
-          <p className="text-gray-400 mt-1 font-medium italic">
-            Manage business growth journeys and strategic leads.
-          </p>
-        </div>
-        <div className="bg-[#1A1A1A] px-6 py-3 rounded-[24px] border border-white/5 text-sm shadow-2xl">
-          <span className="text-gray-500 font-black uppercase tracking-widest text-[10px]">
-            Total Leads
-          </span>
-          <span className="text-white font-black ml-3 text-lg">
-            {inquiries.length}
-          </span>
-        </div>
+    <>
+      <PageHeader
+        title="Leads"
+        description="People who contacted you through the website. Reply, then move each lead along as the conversation goes."
+      />
+
+      <div className="mb-5 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <FilterTabs basePath="/admin/inquiries" tabs={tabs} active={activeStatus} query={q} />
+        <Suspense>
+          <SearchBox placeholder="Search name, email, company…" />
+        </Suspense>
       </div>
 
-      <div className="bg-[#181818] border border-[#222] rounded-[32px] overflow-hidden shadow-2xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-[#111] text-gray-400 text-[10px] uppercase tracking-[0.2em] font-black border-b border-[#222]">
-              <tr>
-                <th className="p-8">Lead Identity</th>
-                <th className="p-8">Growth focus</th>
-                <th className="p-8">Pipeline status</th>
-                <th className="p-8 text-right">Verification</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#222]">
-              {inquiries.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="p-20 text-center text-gray-600 italic"
-                  >
-                    <div className="flex flex-col items-center gap-4">
-                      <Target size={48} className="text-gray-800" />
-                      <div>No leads have entered the pulse ecosystem.</div>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                inquiries.map((inquiry) => (
-                  <tr
-                    key={inquiry.id}
-                    className="hover:bg-white/[0.01] transition-all group"
-                  >
-                    <td className="p-8">
-                      <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 rounded-[20px] bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-lg group-hover:scale-110 transition-transform duration-500">
-                          <User size={24} />
-                        </div>
-                        <div>
-                          <div className="text-white font-black text-lg group-hover:text-[#FF6600] transition-colors leading-tight">
-                            {inquiry.name}
-                            {inquiry.status === "new" && (
-                              <span className="ml-2 w-1.5 h-1.5 rounded-full bg-[#FF6600] inline-block animate-pulse align-middle" />
-                            )}
-                          </div>
-                          <div className="text-gray-500 text-xs flex items-center gap-2 mt-1.5 font-medium bg-white/5 px-2.5 py-1 rounded-md w-fit italic">
-                            <Mail size={12} className="text-[#FF6600]/60" />{" "}
-                            {inquiry.email}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-8 border-x border-[#222]/30">
-                      <div className="space-y-3">
-                        <div className="text-gray-200 text-sm font-black flex items-center gap-2 uppercase tracking-tight">
-                          <Zap size={16} className="text-[#FF6600]" />
-                          {inquiry.service || "Brand Growth"}
-                        </div>
-                        <div className="text-gray-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 opacity-60">
-                          <Building2 size={12} />{" "}
-                          {inquiry.company || "Individual Lead"}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-8">
-                      <div className="space-y-4">
-                        <span
-                          className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${getStatusColor(inquiry.status)}`}
-                        >
-                          {inquiry.status}
-                        </span>
-                        <div className="text-gray-600 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                          <Calendar size={12} className="text-[#FF6600]/30" />
-                          {new Date(inquiry.createdAt).toLocaleDateString(
-                            undefined,
-                            {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            },
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-8 text-right">
-                      <Link
-                        href={`/admin/inquiries/${inquiry.id}`}
-                        className="relative px-6 py-3 rounded-[10px] font-semibold text-[14px] text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 shadow-xl w-fit ml-auto"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, #FF6600 0%, #FF7700 100%)",
-                          boxShadow:
-                            "0 4px 15px rgba(255, 102, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-                        }}
-                      >
-                        Details Core
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+      {all.length === 0 ? (
+        <EmptyState
+          icon={<MessageSquareText />}
+          title="No leads yet"
+          description="When someone fills in the contact form on your website, they'll appear here."
+        />
+      ) : leads.length === 0 ? (
+        <EmptyState
+          icon={<SearchX />}
+          title="Nothing matches"
+          description={query ? `No leads match “${q}” here. Try another word or a different status.` : "No leads with this status right now."}
+        />
+      ) : (
+        <ul className="overflow-hidden rounded-2xl border border-xa-line bg-xa-panel">
+          {leads.map((lead) => {
+            const isNew = lead.status === "new";
+            return (
+              <li key={lead.id} className="border-b border-xa-line last:border-b-0">
+                <Link
+                  href={`/admin/inquiries/${lead.id}`}
+                  className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-4 transition-colors hover:bg-white/[0.03] sm:px-5 md:grid-cols-[auto_minmax(0,1.4fr)_minmax(0,1fr)_120px_110px_auto]"
+                >
+                  <XaAvatar name={lead.name} />
+                  <div className="min-w-0">
+                    <p className={cn("flex items-center gap-2 truncate text-[15px] text-xa-ink", isNew ? "font-bold" : "font-semibold")}>
+                      {isNew && <span className="size-2 shrink-0 rounded-full bg-xa-accent" aria-label="New" />}
+                      <span className="truncate">{lead.name}</span>
+                    </p>
+                    <p className="truncate text-sm text-xa-muted">{lead.company || lead.email}</p>
+                  </div>
+                  <p className="col-start-2 truncate text-sm text-xa-muted md:col-start-auto md:text-xa-ink/80">
+                    {lead.service || "General enquiry"}
+                  </p>
+                  <p className="hidden text-sm text-xa-muted md:block" title={formatDate(lead.createdAt, true)}>
+                    {timeAgo(lead.createdAt)}
+                  </p>
+                  <div className="col-start-3 row-span-2 row-start-1 flex flex-col items-end gap-2 md:col-start-auto md:row-span-1 md:row-start-auto md:block">
+                    <StatusPill kind="lead" status={lead.status} />
+                    <span className="text-xs text-xa-muted md:hidden">{timeAgo(lead.createdAt)}</span>
+                  </div>
+                  <ChevronRight className="hidden size-4 text-xa-faint transition-transform group-hover:translate-x-0.5 group-hover:text-xa-muted md:block" aria-hidden />
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </>
   );
 }

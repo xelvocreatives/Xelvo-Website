@@ -24,6 +24,9 @@ import type { Application, Inquiry, Project, Testimonial } from "@/types";
  */
 
 const newestFirst = { createdAt: -1 } as const;
+// Projects and testimonials follow the order the admin arranged (drag and
+// drop); items never arranged fall back to newest first.
+const arranged = { order: 1, createdAt: -1 } as const;
 
 async function publicRead<T>(label: string, read: () => Promise<T[]>) {
   try {
@@ -41,7 +44,7 @@ export function getFeaturedProjects(limit = 4): Promise<Project[]> {
     (
       await (await projects())
         .find({ isFeatured: true })
-        .sort(newestFirst)
+        .sort(arranged)
         .limit(limit)
         .toArray()
     ).map(toProject),
@@ -53,7 +56,7 @@ export function getPortfolioProjects(): Promise<Project[]> {
     (
       await (await projects())
         .find({ isFeatured: false })
-        .sort(newestFirst)
+        .sort(arranged)
         .toArray()
     ).map(toProject),
   );
@@ -64,7 +67,7 @@ export function getLatestTestimonials(limit = 9): Promise<Testimonial[]> {
     (
       await (await testimonials())
         .find()
-        .sort(newestFirst)
+        .sort(arranged)
         .limit(limit)
         .toArray()
     ).map(toTestimonial),
@@ -74,13 +77,13 @@ export function getLatestTestimonials(limit = 9): Promise<Testimonial[]> {
 // --- Admin -----------------------------------------------------------------
 
 export async function getAllProjects(): Promise<Project[]> {
-  return (await (await projects()).find().sort(newestFirst).toArray()).map(
+  return (await (await projects()).find().sort(arranged).toArray()).map(
     toProject,
   );
 }
 
 export async function getAllTestimonials(): Promise<Testimonial[]> {
-  return (await (await testimonials()).find().sort(newestFirst).toArray()).map(
+  return (await (await testimonials()).find().sort(arranged).toArray()).map(
     toTestimonial,
   );
 }
@@ -143,4 +146,29 @@ export async function getDashboardData() {
     recentInquiries: recentInquiries.map(toInquiry),
     recentApplications: recentApplications.map(toApplication),
   };
+}
+
+/** Leads and job applications still marked "new", newest first. */
+export async function getNeedsReply(limit = 12) {
+  const [i, a] = await Promise.all([inquiries(), applications()]);
+  const [leads, apps] = await Promise.all([
+    i.find({ status: "new" }).sort(newestFirst).limit(limit).toArray(),
+    a.find({ status: "new" }).sort(newestFirst).limit(limit).toArray(),
+  ]);
+  return { leads: leads.map(toInquiry), applications: apps.map(toApplication) };
+}
+
+/** Counts for the admin navigation badges. Never throws. */
+export async function getAdminCounts() {
+  try {
+    const [i, a] = await Promise.all([inquiries(), applications()]);
+    const [newLeads, newApplications] = await Promise.all([
+      i.countDocuments({ status: "new" }),
+      a.countDocuments({ status: "new" }),
+    ]);
+    return { newLeads, newApplications };
+  } catch (error) {
+    console.error("[data] getAdminCounts failed:", error);
+    return { newLeads: 0, newApplications: 0 };
+  }
 }

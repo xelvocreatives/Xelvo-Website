@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-23T00:00:00Z",
+  "title": "Design System: Xelvo Creatives Admin",
+  "extensions": {
+    "colorMeta": {
+      "ground": { "role": "neutral", "displayName": "Night Ground", "canonical": "#0b0b0b", "tonalRamp": ["#050505", "#0b0b0b", "#141414", "#1c1c1c", "#2e2e2e", "#6f6a63", "#a19c95", "#f4f1ec"] },
+      "rail": { "role": "neutral", "displayName": "Rail Black", "canonical": "#0e0e0e", "tonalRamp": ["#050505", "#0e0e0e", "#181818", "#262626", "#3a3a3a", "#5c5c5c", "#9a9a9a", "#e6e6e6"] },
+      "field": { "role": "neutral", "displayName": "Well Black", "canonical": "#101010", "tonalRamp": ["#060606", "#101010", "#1a1a1a", "#282828", "#3c3c3c", "#5e5e5e", "#9c9c9c", "#e8e8e8"] },
+      "panel": { "role": "neutral", "displayName": "Panel Charcoal", "canonical": "#141414", "tonalRamp": ["#080808", "#141414", "#1e1e1e", "#2b2b2b", "#404040", "#626262", "#a0a0a0", "#ebebeb"] },
+      "raised": { "role": "neutral", "displayName": "Raised Charcoal", "canonical": "#1c1c1c", "tonalRamp": ["#0b0b0b", "#1c1c1c", "#242424", "#2e2e2e", "#444444", "#666666", "#a4a4a4", "#ededed"] },
+      "line": { "role": "neutral", "displayName": "Hairline", "canonical": "rgb(255 255 255 / 0.08)" },
+      "line-strong": { "role": "neutral", "displayName": "Hairline Strong", "canonical": "rgb(255 255 255 / 0.14)" },
+      "ink": { "role": "neutral", "displayName": "Warm Ink", "canonical": "#f4f1ec", "tonalRamp": ["#2a2824", "#45423d", "#6f6a63", "#8a857e", "#a19c95", "#c9c4bd", "#e4e0da", "#f4f1ec"] },
+      "muted": { "role": "neutral", "displayName": "Stone", "canonical": "#a19c95", "tonalRamp": ["#26241f", "#3d3a35", "#56524c", "#6f6a63", "#8a857e", "#a19c95", "#c9c4bd", "#ece8e2"] },
+      "faint": { "role": "neutral", "displayName": "Ash", "canonical": "#6f6a63", "tonalRamp": ["#1f1d1a", "#33302c", "#4a4641", "#6f6a63", "#8a857e", "#a6a19a", "#c9c4bd", "#ece8e2"] },
+      "placeholder": { "role": "neutral", "displayName": "Placeholder Grey", "canonical": "#8a857e" },
+      "accent": { "role": "primary", "displayName": "Xelvo Orange", "canonical": "#ff6600", "tonalRamp": ["#2e1200", "#5c2400", "#8f3800", "#c24c00", "#ff6600", "#ff7a1f", "#ff8a3d", "#ffd2b3"] },
+      "accent-hover": { "role": "primary", "displayName": "Struck Orange", "canonical": "#ff7a1f" },
+      "accent-text": { "role": "primary", "displayName": "Orange Text", "canonical": "#ff8a3d" },
+      "on-accent": { "role": "primary", "displayName": "Burnt Ink", "canonical": "#170a00" },
+      "status-blue": { "role": "secondary", "displayName": "Contact Blue", "canonical": "#7cb4ff", "tonalRamp": ["#0b1f3d", "#14365f", "#224f86", "#3a6dae", "#5a90d8", "#7cb4ff", "#a8ceff", "#dcebff"] },
+      "status-violet": { "role": "secondary", "displayName": "Talks Violet", "canonical": "#b9a2ff", "tonalRamp": ["#1d1340", "#2f2163", "#45338a", "#5f4bb0", "#8a74de", "#b9a2ff", "#d2c4ff", "#ede7ff"] },
+      "status-green": { "role": "secondary", "displayName": "Won Green", "canonical": "#5fd68b", "tonalRamp": ["#08291a", "#0f4429", "#18613b", "#23824f", "#3aa96a", "#5fd68b", "#94e6b2", "#d5f7e2"] },
+      "status-red": { "role": "secondary", "displayName": "Closed Red", "canonical": "#ff7a72", "tonalRamp": ["#3a1512", "#5a1f1a", "#7d2a23", "#a83a31", "#d9534a", "#ff7a72", "#ffa9a3", "#ffdedb"] },
+      "danger-fill": { "role": "secondary", "displayName": "Danger Ember", "canonical": "#3a1512" },
+      "whatsapp": { "role": "secondary", "displayName": "WhatsApp Green", "canonical": "#25d366" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Home greeting and login welcome; 30px below sm." },
+      "headline": { "displayName": "Headline", "purpose": "Page titles; 28px below sm." },
+      "title": { "displayName": "Title", "purpose": "Section headings, dialog titles." },
+      "body": { "displayName": "Body", "purpose": "Descriptions (max 62ch), list primary lines, input text." },
+      "body-sm": { "displayName": "Body small", "purpose": "Card secondary lines, dialog copy, default button text." },
+      "label": { "displayName": "Label", "purpose": "Small buttons, filter tabs, hints and errors." },
+      "caption": { "displayName": "Caption", "purpose": "Status pills, card meta, tile category line." }
+    },
+    "shadows": [
+      { "name": "slide-over", "value": "-24px 0 60px -20px rgb(0 0 0 / 0.8)", "purpose": "Editor slide-over panel." },
+      { "name": "dialog", "value": "0 24px 60px -12px rgb(0 0 0 / 0.8)", "purpose": "Confirm dialogs." },
+      { "name": "popover", "value": "0 16px 40px -12px rgb(0 0 0 / 0.85)", "purpose": "Action menus and toasts." },
+      { "name": "field-focus", "value": "0 0 0 3px rgb(255 102 0 / 0.18)", "purpose": "Input focus ring only; red equivalent rgb(255 122 114 / 0.18) on error." },
+      { "name": "focus-outline", "value": "outline: 2px solid #ff6600; outline-offset: 2px", "purpose": "Global keyboard focus inside .xa." }
+    ],
+    "motion": [
+      { "name": "state", "value": "200ms ease-out", "purpose": "Colour and border transitions on buttons, nav, fields." },
+      { "name": "press", "value": "scale(0.98)", "purpose": "Button active state." },
+      { "name": "ease-out-expo", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Slide-over entrance (300ms), tile image zoom (700ms, scale 1.03), switch thumb." },
+      { "name": "reduced-motion", "value": "0.01ms", "purpose": "All animation and transition durations collapse under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px", "purpose": "Sidebar replaces top bar and tab bar; editor gains the sticky preview column." },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main action per view. Flat orange, no glow.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg>Add project</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 20px; border: none; border-radius: 12px; background: #ff6600; color: #170a00; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 200ms ease-out, transform 200ms ease-out; } .ds-btn-primary:hover { background: #ff7a1f; } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Default button: raised charcoal with a strong hairline.",
+      "html": "<button class=\"ds-btn-secondary\">Manage</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; height: 44px; padding: 0 20px; border: 1px solid rgb(255 255 255 / 0.14); border-radius: 12px; background: #1c1c1c; color: #f4f1ec; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 200ms ease-out, border-color 200ms ease-out, transform 200ms ease-out; } .ds-btn-secondary:hover { background: #222; border-color: rgb(255 255 255 / 0.25); } .ds-btn-secondary:active { transform: scale(0.98); } .ds-btn-secondary:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Confirmed deletes inside the confirm dialog.",
+      "html": "<button class=\"ds-btn-danger\">Delete project</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; height: 44px; padding: 0 20px; border: 1px solid rgb(255 122 114 / 0.25); border-radius: 12px; background: #3a1512; color: #ff7a72; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background-color 200ms ease-out, transform 200ms ease-out; } .ds-btn-danger:hover { background: #4a1915; } .ds-btn-danger:active { transform: scale(0.98); } .ds-btn-danger:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Label above, well-black field, orange focus ring, inline red error.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-field-label\" for=\"ds-title\">Project name</label><input id=\"ds-title\" class=\"ds-input\" placeholder=\"e.g. LearnOnline x Indrive\"><p class=\"ds-field-hint\">Shown as the card title on your website.</p></div>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 8px; font-family: 'Plus Jakarta Sans', sans-serif; max-width: 360px; } .ds-field-label { font-size: 14px; font-weight: 600; color: #f4f1ec; } .ds-input { height: 44px; padding: 0 16px; border: 1px solid rgb(255 255 255 / 0.14); border-radius: 12px; background: #101010; color: #f4f1ec; font: inherit; font-size: 15px; caret-color: #ff6600; outline: none; transition: border-color 200ms, box-shadow 200ms; } .ds-input::placeholder { color: #8a857e; } .ds-input:hover { border-color: rgb(255 255 255 / 0.25); } .ds-input:focus { border-color: #ff6600; box-shadow: 0 0 0 3px rgb(255 102 0 / 0.18); } .ds-input[aria-invalid=true] { border-color: rgb(255 122 114 / 0.7); } .ds-field-hint { margin: 0; font-size: 13px; line-height: 1.6; color: #a19c95; }"
+    },
+    {
+      "name": "Status Pill",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "description": "Tinted pill with a dot; one hue per plain-English status.",
+      "html": "<span class=\"ds-pill ds-pill-new\"><i></i>New</span> <span class=\"ds-pill ds-pill-blue\"><i></i>Contacted</span> <span class=\"ds-pill ds-pill-violet\"><i></i>Interested</span> <span class=\"ds-pill ds-pill-green\"><i></i>Won</span> <span class=\"ds-pill ds-pill-red\"><i></i>Closed</span>",
+      "css": ".ds-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; line-height: 1; } .ds-pill i { width: 6px; height: 6px; border-radius: 9999px; background: currentColor; } .ds-pill-new { background: rgb(255 102 0 / 0.14); color: #ff8a3d; } .ds-pill-new i { background: #ff6600; } .ds-pill-blue { background: rgb(124 180 255 / 0.12); color: #7cb4ff; } .ds-pill-violet { background: rgb(185 162 255 / 0.12); color: #b9a2ff; } .ds-pill-green { background: rgb(95 214 139 / 0.12); color: #5fd68b; } .ds-pill-red { background: rgb(255 122 114 / 0.12); color: #ff7a72; }"
+    },
+    {
+      "name": "Filter Tabs",
+      "kind": "chip",
+      "refersTo": "filter-tab",
+      "description": "Round link chips with counts; the active tab inverts to warm ink.",
+      "html": "<nav class=\"ds-tabs\"><a class=\"ds-tab ds-tab-active\" href=\"#\">All <span>12</span></a><a class=\"ds-tab\" href=\"#\">New <span>2</span></a><a class=\"ds-tab\" href=\"#\">Contacted <span>5</span></a></nav>",
+      "css": ".ds-tabs { display: flex; gap: 6px; font-family: 'Plus Jakarta Sans', sans-serif; } .ds-tab { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border: 1px solid rgb(255 255 255 / 0.14); border-radius: 9999px; color: #a19c95; font-size: 13px; font-weight: 600; text-decoration: none; transition: color 200ms, border-color 200ms; } .ds-tab span { color: #6f6a63; } .ds-tab:hover { color: #f4f1ec; border-color: rgb(255 255 255 / 0.25); } .ds-tab:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; } .ds-tab-active { background: #f4f1ec; border-color: #f4f1ec; color: #0b0b0b; } .ds-tab-active span { color: rgb(11 11 11 / 0.7); }"
+    },
+    {
+      "name": "Sidebar Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Rail-black sidebar; active item gets a white wash and an orange icon; unread counts as orange badges.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item ds-nav-active\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z\"/></svg><span>Home</span></a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/></svg><span>Leads</span><b>1</b></a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"7\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2\"/></svg><span>Job applications</span></a></nav>",
+      "css": ".ds-nav { width: 248px; padding: 8px 12px; background: #0e0e0e; display: flex; flex-direction: column; gap: 4px; font-family: 'Plus Jakarta Sans', sans-serif; } .ds-nav-item { display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 12px; border-radius: 12px; color: #a19c95; font-size: 15px; font-weight: 500; text-decoration: none; transition: background-color 200ms, color 200ms; } .ds-nav-item svg { color: #6f6a63; } .ds-nav-item span { flex: 1; } .ds-nav-item b { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 9999px; background: #ff6600; color: #170a00; font-size: 11px; display: inline-flex; align-items: center; justify-content: center; } .ds-nav-item:hover { background: rgb(255 255 255 / 0.04); color: #f4f1ec; } .ds-nav-item:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; } .ds-nav-active { background: rgb(255 255 255 / 0.07); color: #f4f1ec; } .ds-nav-active svg { color: #ff6600; }"
+    },
+    {
+      "name": "Needs-Reply Card",
+      "kind": "card",
+      "refersTo": "panel-card",
+      "description": "Person card in the Home reply strip: neutral avatar, orange new dot, one-tap WhatsApp and email.",
+      "html": "<div class=\"ds-reply\"><div class=\"ds-reply-top\"><span class=\"ds-avatar\">AK</span><div><p class=\"ds-reply-name\">Aisha Khan <i></i></p><p class=\"ds-reply-sub\">Social media design · Barakah Foods</p></div></div><div class=\"ds-reply-foot\"><span>Lead · 3 hours ago</span><span class=\"ds-reply-acts\"><button class=\"ds-wa\" aria-label=\"WhatsApp\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M7.9 20A9 9 0 1 0 4 16.1L2 22z\"/></svg></button><button class=\"ds-mail\" aria-label=\"Email\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\"/><path d=\"m22 7-10 6L2 7\"/></svg></button></span></div></div>",
+      "css": ".ds-reply { width: 340px; display: flex; flex-direction: column; gap: 16px; padding: 16px; border: 1px solid rgb(255 255 255 / 0.08); border-radius: 16px; background: #141414; font-family: 'Plus Jakarta Sans', sans-serif; color: #f4f1ec; transition: border-color 200ms; } .ds-reply-top { display: flex; gap: 12px; align-items: flex-start; } .ds-avatar { width: 44px; height: 44px; border-radius: 9999px; background: #242424; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.1); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: rgb(244 241 236 / 0.85); flex-shrink: 0; } .ds-reply-name { margin: 0; font-weight: 700; display: flex; align-items: center; gap: 8px; } .ds-reply-name i { width: 8px; height: 8px; border-radius: 9999px; background: #ff6600; } .ds-reply-sub { margin: 0; font-size: 14px; color: #a19c95; } .ds-reply-foot { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 500; color: #a19c95; } .ds-reply-acts { display: flex; gap: 6px; } .ds-reply-acts button { width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; } .ds-wa { background: rgb(37 211 102 / 0.12); color: #25d366; border: 1px solid rgb(37 211 102 / 0.25); } .ds-mail { background: #1c1c1c; color: #f4f1ec; border: 1px solid rgb(255 255 255 / 0.14); } .ds-reply-acts button:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; }"
+    },
+    {
+      "name": "Project Tile",
+      "kind": "custom",
+      "refersTo": "project-tile",
+      "description": "Image-first portfolio tile with 14px corners, a black legibility scrim and an always-visible options menu.",
+      "html": "<div class=\"ds-tile\"><div class=\"ds-tile-img\"></div><div class=\"ds-tile-scrim\"></div><button class=\"ds-tile-menu\" aria-label=\"Options\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><circle cx=\"5\" cy=\"12\" r=\"1.8\"/><circle cx=\"12\" cy=\"12\" r=\"1.8\"/><circle cx=\"19\" cy=\"12\" r=\"1.8\"/></svg></button><div class=\"ds-tile-text\"><p>Company profile &amp; branding</p><h3>The Horizon Travels</h3></div></div>",
+      "css": ".ds-tile { position: relative; isolation: isolate; width: 360px; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 14px; background: #141414; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08); font-family: 'Plus Jakarta Sans', sans-serif; transition: box-shadow 300ms; } .ds-tile:hover { box-shadow: 0 0 0 1px rgb(255 255 255 / 0.2); } .ds-tile-img { position: absolute; inset: 0; z-index: -2; background: linear-gradient(135deg, #3a3f44, #6b7178); transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-tile:hover .ds-tile-img { transform: scale(1.03); } .ds-tile-scrim { position: absolute; inset: auto 0 0 0; height: 75%; z-index: -1; background: linear-gradient(to top, rgb(0 0 0 / 0.92), rgb(0 0 0 / 0.7) 35%, rgb(0 0 0 / 0.25) 70%, transparent); } .ds-tile-menu { position: absolute; top: 12px; right: 12px; width: 36px; height: 36px; border: none; border-radius: 8px; background: rgb(0 0 0 / 0.55); color: #fff; backdrop-filter: blur(4px); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; } .ds-tile-menu:hover { background: rgb(0 0 0 / 0.75); } .ds-tile-menu:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; } .ds-tile-text { position: absolute; inset: auto 0 0 0; padding: 20px; } .ds-tile-text p { margin: 0 0 4px; font-size: 12px; font-weight: 600; color: rgb(255 255 255 / 0.75); } .ds-tile-text h3 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: #fff; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Studio Wall",
+    "overview": "The admin looks like the work. The owner is a graphic designer, so the screen leads with large project images and client faces, and everything waiting for a reply is pinned above them. It turns down the usual back-office layout of KPI tiles over data tables. Lists exist (leads, job applications), but they are calm single panels with status pills. The full message and its actions sit on a detail page.\n\nThe material is the Xelvo brand at night: a near-black ground, slightly lifted panels separated by 1px white hairlines, warm off-white ink and one hot orange used sparingly. Depth comes from tone steps and hairlines, never from glow. Type is Plus Jakarta Sans in sentence case at bold weights with tight tracking, and every label uses plain English the owner would say out loud.\n\nThe signature is the live website preview. In the project and testimonial editors, a copy of the public site's card updates as the owner types or picks an image, so they see the website result before saving.",
+    "keyCharacteristics": [
+      "Image-first: projects show as 14px-cornered photo tiles, not table rows.",
+      "One accent with a strict job list (primary action, needs-reply, logo).",
+      "Tonal layering on near-black with 1px white hairlines.",
+      "Sentence-case Plus Jakarta Sans, bold, tightly tracked headings, tabular numerals.",
+      "Plain-English status vocabulary with one hue per meaning.",
+      "Desktop sidebar, mobile top bar plus bottom tab bar."
+    ],
+    "rules": [
+      { "name": "The Orange Reserve Rule", "body": "Xelvo Orange means \"do this\" or \"someone is waiting\". It goes on primary actions, needs-reply state (badges, new dots, the New pill) and the logo, and on nothing else. Avatars are neutral charcoal. If orange marks something that is neither an action nor a waiting person, it is wrong. The keyboard focus ring is the one global exception (2px orange outline, 2px offset), because the build sets it in the scope stylesheet for accessibility.", "section": "colors" },
+      { "name": "The Preview Exception Rule", "body": "Inside a live-preview frame, the public site's styling wins: its orange-to-amber gradient title, gradient avatar and white or #121212 card. A preview has to be the public card. That styling never leaves the frame.", "section": "colors" },
+      { "name": "The Tint, Not Block Rule", "body": "Status hues appear as a 12% tint with full-strength text plus a 6px dot. Solid fills are reserved for the orange count badge and the active filter tab.", "section": "colors" },
+      { "name": "The Sentence Case Rule", "body": "Every label, button and heading is sentence case. No uppercase tracked labels, and no kicker or eyebrow line above a heading. The date above the Home greeting is content, not a label.", "section": "typography" },
+      { "name": "The Plain Words Rule", "body": "Statuses read New, Contacted, Interested, Won, Closed (leads) and New, Reviewing, Contacted, Hired, Not selected (applications). Navigation reads Home, Leads, Job applications, Projects, Testimonials. On mobile these shorten to Jobs and Reviews. No themed jargon.", "section": "typography" },
+      { "name": "The First Card Leads Rule", "body": "On the Home wall the first tile is the hero (2 columns by 2 rows once 3 or more show), and the tile count always fills the grid: 1, 2, 3 or 5. Never span every featured project. The client marks all of them featured, and spanning each one turns the wall into a stack of equal heroes.", "section": "layout" },
+      { "name": "The No Glow Rule", "body": "Primary buttons are flat orange with no coloured halo at rest or on hover. A coloured ring appears only as a focus state.", "section": "elevation" },
+      { "name": "The Scrim Only Rule", "body": "The only gradient in the admin's own chrome is the black legibility scrim at the bottom of project tiles (black 92% to transparent over the lower three quarters). Decorative gradients do not exist outside the preview frame.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep Xelvo Orange to primary actions, needs-reply state (badges, new dots, the New pill) and the logo.",
+      "Do show projects as image tiles with 14px corners, and let the first card lead the Home wall in a grid of 1, 2, 3 or 5 tiles with no empty cells.",
+      "Do show status as a tinted pill with a dot, using the plain-English vocabulary: New, Contacted, Interested, Won, Closed / New, Reviewing, Contacted, Hired, Not selected.",
+      "Do separate surfaces with tone steps and 1px white hairlines (8%, or 14% for controls).",
+      "Do confirm every delete and every unsaved-changes discard in an in-app dialog, and toast every save.",
+      "Do mirror the public card exactly inside a live preview, including its gradients."
+    ],
+    "donts": [
+      "Don't put a coloured glow or halo on buttons or cards; primary buttons are flat.",
+      "Don't make avatars orange or use the brand gradient anywhere outside the preview frame.",
+      "Don't add kicker or eyebrow labels, uppercase tracked labels, or themed jargon names for statuses and sections.",
+      "Don't span every featured project on the Home wall, or leave an empty grid cell.",
+      "Don't build a KPI tile row over a data table as the Home view.",
+      "Don't use Ash (faint) for text the owner has to read."
+    ]
+  }
+}

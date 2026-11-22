@@ -6,11 +6,25 @@ import { z } from "zod";
 import { isAdmin, UNAUTHORIZED } from "@/lib/auth-guard";
 import { isOwnUploadUrl } from "@/lib/cloudinary";
 import { parseId, projects } from "@/lib/db/models";
+import { applyOrder, topOrder, type Orderable } from "@/lib/db/ordering";
+import type { Collection } from "mongodb";
 
 const ProjectSchema = z.object({
-  title: z.string().trim().min(1, "Title is required"),
-  description: z.string().trim().min(1, "Description is required"),
-  category: z.string().trim().min(1, "Category is required"),
+  title: z
+    .string()
+    .trim()
+    .min(1, "Give the project a name.")
+    .max(100, "Keep the name under 100 characters."),
+  description: z
+    .string()
+    .trim()
+    .min(10, "Write at least a short sentence (10+ characters).")
+    .max(600, "Keep the description under 600 characters."),
+  category: z
+    .string()
+    .trim()
+    .min(1, "Add a category, e.g. Branding.")
+    .max(60, "Keep the category under 60 characters."),
 });
 
 export type State = {
@@ -38,8 +52,7 @@ function readForm(formData: FormData) {
 }
 
 function revalidateProjectPages() {
-  revalidatePath("/admin/projects");
-  revalidatePath("/admin");
+  revalidatePath("/admin", "layout");
   revalidatePath("/projects");
   revalidatePath("/");
 }
@@ -55,34 +68,36 @@ export async function createProject(
     return {
       ok: false,
       errors: parsed.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Create Project.",
+      message: "Please fix the highlighted fields.",
     };
   }
   if (!isOwnUploadUrl(imageUrl, "project")) {
     return {
       ok: false,
-      errors: { imageUrl: ["Please upload a project image."] },
-      message: "Image is required.",
+      errors: { imageUrl: ["Add a cover image for this project."] },
+      message: "Please fix the highlighted fields.",
     };
   }
 
   try {
     const now = new Date();
-    await (await projects()).insertOne({
+    const col = await projects();
+    await col.insertOne({
       _id: new ObjectId(),
       ...parsed.data,
       imageUrl,
       isFeatured,
+      order: await topOrder(col as unknown as Collection<Orderable>),
       createdAt: now,
       updatedAt: now,
     });
   } catch (error) {
     console.error("Database Error:", error);
-    return { ok: false, message: "Database Error: Failed to Create Project." };
+    return { ok: false, message: "Couldn’t save the project. Please try again." };
   }
 
   revalidateProjectPages();
-  return { ok: true, message: "Project Created" };
+  return { ok: true, message: "Project added." };
 }
 
 export async function updateProject(
@@ -100,7 +115,7 @@ export async function updateProject(
     return {
       ok: false,
       errors: parsed.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Update Project.",
+      message: "Please fix the highlighted fields.",
     };
   }
 
@@ -122,26 +137,79 @@ export async function updateProject(
     }
   } catch (error) {
     console.error("Database Error:", error);
-    return { ok: false, message: "Database Error: Failed to Update Project." };
+    return { ok: false, message: "Couldn’t save your changes. Please try again." };
   }
 
   revalidateProjectPages();
-  return { ok: true, message: "Project Updated" };
+  return { ok: true, message: "Changes saved." };
 }
 
-export async function deleteProject(id: string) {
-  if (!(await isAdmin())) return { message: UNAUTHORIZED };
+export type ActionResult = { ok: boolean; message: string };
+
+export async function deleteProject(id: string): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
 
   const _id = parseId(id);
-  if (!_id) return { message: "Project not found." };
+  if (!_id) return { ok: false, message: "Project not found." };
 
   try {
     await (await projects()).deleteOne({ _id });
   } catch (error) {
     console.error("Database Error:", error);
-    return { message: "Database Error: Failed to Delete Project." };
+    return { ok: false, message: "Couldn’t delete the project. Please try again." };
   }
 
   revalidateProjectPages();
-  return { message: "Deleted Project" };
+  return { ok: true, message: "Project deleted." };
+}
+
+/** Shows or hides a project on the home page (the "featured" flag). */
+export async function setProjectFeatured(
+  id: string,
+  featured: boolean,
+): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
+
+  const _id = parseId(id);
+  if (!_id) return { ok: false, message: "Project not found." };
+
+  try {
+    await (await projects()).updateOne(
+      { _id },
+      { $set: { isFeatured: featured, updatedAt: new Date() } },
+    );
+  } catch (error) {
+    console.error("Database Error:", error);
+    return { ok: false, message: "Couldn’t update the project. Please try again." };
+  }
+
+  revalidateProjectPages();
+  return {
+    ok: true,
+    message: featured ? "Now showing on the home page." : "Moved to the projects page.",
+  };
+}
+
+/** Saves the drag-and-drop arrangement: `ids` is every project, in order. */
+export async function reorderProjects(ids: string[]): Promise<ActionResult> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
+
+  const parsed = ids.map(parseId);
+  if (parsed.some((id) => id === null)) return { ok: false, message: "Couldn’t save the new order." };
+
+  try {
+    const outcome = await applyOrder(
+      (await projects()) as unknown as Collection<Orderable>,
+      parsed as ObjectId[],
+    );
+    if (outcome === "stale") {
+      return { ok: false, message: "Your projects changed in the meantime. Refresh the page and try again." };
+    }
+  } catch (error) {
+    console.error("Reorder error:", error);
+    return { ok: false, message: "Couldn’t save the new order. Please try again." };
+  }
+
+  revalidateProjectPages();
+  return { ok: true, message: "Order saved." };
 }
