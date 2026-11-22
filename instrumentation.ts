@@ -2,7 +2,7 @@
  * Next.js instrumentation hook: runs once per server process at startup.
  * https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation
  *
- * Used here to start the in-process Supabase keep-alive, so no external cron
+ * Used here to start the in-process database keep-alive, so no external cron
  * or scheduler is required on a host that keeps the Node process alive.
  */
 export async function register(): Promise<void> {

@@ -36,135 +36,87 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 # xelvo-creative
 
+## Stack
+
+- **Database:** MongoDB Atlas (`lib/db/`). Every read goes through [`lib/data.ts`](lib/data.ts).
+- **File storage:** Cloudinary. Images and CVs upload **straight from the browser** with a
+  short-lived server signature ([`lib/upload-client.ts`](lib/upload-client.ts),
+  [`app/actions/uploads.ts`](app/actions/uploads.ts)), so file size is never limited by
+  Vercel's 4.5 MB request cap. Photos larger than 2560 px are scaled down in the browser first.
+- **Admin auth:** Auth.js (NextAuth v5) with 1–2 admin accounts defined in env vars
+  ([`auth.ts`](auth.ts), [`lib/admin-credentials.ts`](lib/admin-credentials.ts)).
+  [`proxy.ts`](proxy.ts) guards `/admin` pages and every admin server action checks the
+  session itself ([`lib/auth-guard.ts`](lib/auth-guard.ts)).
+
 ## Environment Variables
 
 Copy the template and fill in the real values:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-`.env*` is gitignored. Every variable the app reads is documented in
-[`.env.example`](.env.example) — keep that file updated when adding a new one.
+`.env*` is gitignored except `.env.example`, which documents every variable.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | yes | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Public key, guarded by RLS |
-| `SUPABASE_SERVICE_ROLE_KEY` | yes | Server-only key; bypasses RLS |
+| `MONGODB_URI` | yes | Atlas connection string (`mongodb+srv://...`) |
+| `MONGODB_DB` | no | Database name (default `xelvo`) |
+| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | yes | Uploads |
+| `AUTH_SECRET` | yes | Signs admin session cookies |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD_HASH` | yes | First admin |
+| `ADMIN_EMAIL_2` / `ADMIN_PASSWORD_HASH_2` | no | Optional second admin |
 | `NEXT_PUBLIC_SITE_URL` | recommended | Canonical public origin |
-| `HEALTH_CHECK_TABLE` | no | Table probed by `/api/health` (default `Project`) |
 | `HEALTH_CHECK_SECRET` | no | If set, `/api/health` requires `Authorization: Bearer <value>` |
+| `CRON_SECRET` | no | Set on Vercel so the daily cron can call `/api/health` |
+| `MONGODB_DNS_SERVERS` | local only | e.g. `8.8.8.8,1.1.1.1` if you get `querySrv ECONNREFUSED`. Not needed on Vercel |
 
-### Changing domain or hosting provider
-
-Set the same variables on the new host — nothing is hardcoded. `NEXT_PUBLIC_SITE_URL`
-is the only URL-dependent value, and on Vercel, Railway and Render even that is
-auto-detected from the platform's own variables by
-[`lib/site-url.ts`](lib/site-url.ts).
-
-## Supabase Keep-Alive
-
-Free-tier Supabase projects pause after **7 days** of inactivity. This repo
-ships three independent ways to prevent that - pick the one that matches the
-host. All three run the same probe
-([`lib/supabase-ping.ts`](lib/supabase-ping.ts)): a `HEAD ... ?select=id&limit=0`
-against the Supabase REST API, which reaches Postgres without reading rows.
-
-### Option 1 - In-process timer (recommended on Hostinger / VPS)
-
-[`instrumentation.ts`](instrumentation.ts) starts a timer inside the running
-server via [`lib/keep-alive.ts`](lib/keep-alive.ts). **No cron, no git, no
-GitHub, no deployment URL** - the app keeps its own database awake.
-
-```env
-KEEPALIVE_ENABLED="true"          # default: on in production, off in dev
-KEEPALIVE_INTERVAL_MINUTES="5"    # clamped to 1-720
-KEEPALIVE_URL=""                  # empty = loopback (recommended)
-```
-
-Each tick performs a real `GET /api/health`, so it appears in the access log.
-The default target is `http://127.0.0.1:$PORT/api/health` - loopback needs no
-DNS and is unaffected by a domain change. If that call fails, it falls back to
-a direct Supabase ping so the database still gets its activity.
-
-Confirm it is live by looking for this in the server logs after `npm start`:
-
-```
-[keep-alive] Scheduled GET http://127.0.0.1:3000/api/health every 5 minute(s); first ping in 10s.
-[keep-alive] #1 GET http://127.0.0.1:3000/api/health -> 200 (284ms)
-```
-
-The first ping lands 10 seconds after boot, so you do not have to wait a full
-interval to know it works. `GET /api/health` also reports live counters:
-
-```json
-"keepAlive": { "running": true, "pings": 3, "failures": 0,
-               "lastPingAt": "...", "lastLatencyMs": 284 }
-```
-
-If it reports `"running": false`, the `reason` field says why - the two usual
-causes are `KEEPALIVE_ENABLED` not being `"true"` and the server not having
-been restarted since `instrumentation.ts` was added (the hook is registered
-only at startup, so a hot reload will not pick it up).
-
-Requires a host that keeps the Node process running - true for Hostinger
-Node.js hosting, a VPS, Railway, Render or Docker. **Not** true for serverless
-platforms like Vercel, where timers freeze between requests; use Option 2 or 3
-there.
-
-Safeguards: skipped during `next build`, skipped on the edge runtime, survives
-dev hot-reloads without stacking timers, runs on one PM2 worker only
-(`NODE_APP_INSTANCE`), skips a tick if the previous ping is still in flight,
-and uses `unref()` so it never blocks a graceful shutdown.
-
-### Option 2 - Hostinger hPanel cron job
-
-hPanel -> **Advanced -> Cron Jobs**. Schedules are UTC. Either hit the
-endpoint:
+### Admin accounts
 
 ```bash
-curl -fsS https://your-domain.com/api/health
+node scripts/hash-password.mjs   # prints ADMIN_PASSWORD_HASH="scrypt:..."
 ```
 
-...or skip the app entirely and ping Supabase straight from the server, which
-survives any domain change:
+Paste the printed line into `.env` (and Vercel). To change a password, generate a new
+hash and redeploy. Generate `AUTH_SECRET` with
+`node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
+
+### One-time setup in the dashboards
+
+- **Atlas → Network Access:** allow `0.0.0.0/0` (Vercel IPs change). Use a strong DB password.
+- **Cloudinary → Settings → Security:** enable **"Allow delivery of PDF and ZIP files"**,
+  otherwise CV links return `401`.
+
+## Data migration from Supabase
+
+[`scripts/migrate-supabase-to-mongo.mjs`](scripts/migrate-supabase-to-mongo.mjs) copied
+all projects, testimonials, inquiries and applications into MongoDB and moved their files
+to Cloudinary. It only reads from Supabase and is safe to re-run (documents are matched
+by their old id). Needs the old `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
 
 ```bash
-curl -fsS -I -H "apikey: YOUR_ANON_KEY"   "https://your-project-ref.supabase.co/rest/v1/Project?select=id&limit=0"
+node --env-file=.env scripts/migrate-supabase-to-mongo.mjs --dry-run
+node --env-file=.env scripts/migrate-supabase-to-mongo.mjs
 ```
 
-Add `-H "Authorization: Bearer YOUR_HEALTH_CHECK_SECRET"` to the first form if
-`HEALTH_CHECK_SECRET` is set. Cron availability and the minimum interval depend
-on the plan - check the Cron Jobs page in your own hPanel.
+## Database Keep-Alive
 
-### Option 3 - External monitor or GitHub Actions
+Atlas pauses a free cluster after **30 days with zero connections**. Three layers keep it awake:
 
-An uptime service (cron-job.org, UptimeRobot) pointed at
-`https://your-domain.com/api/health` needs no repo and adds alerting.
-[`.github/workflows/supabase-keepalive.yml`](.github/workflows/supabase-keepalive.yml)
-does the same from GitHub Actions; it only runs once the repo is pushed to
-GitHub, so it is inert (and safe to delete) on a non-git deployment.
+1. **Vercel Cron** ([`vercel.json`](vercel.json)) calls `/api/health` daily. Set
+   `CRON_SECRET` in Vercel if `HEALTH_CHECK_SECRET` is set.
+2. **GitHub Actions** ([`.github/workflows/database-keepalive.yml`](.github/workflows/database-keepalive.yml))
+   does the same daily as a backup. Set the repo variable `HEALTH_CHECK_URL` and, if used,
+   the secret `HEALTH_CHECK_SECRET`.
+3. **In-process timer** ([`lib/keep-alive.ts`](lib/keep-alive.ts)) for hosts that keep a
+   Node process running (VPS, Hostinger). Inert on Vercel.
+
+Even if the database is unreachable, the public pages still render (with empty project
+and testimonial sections) instead of crashing.
 
 ## Health Endpoint
 
-`GET /api/health`
-
-```json
-{
-  "status": "ok",
-  "database": "reachable",
-  "table": "Project",
-  "origin": "https://your-domain.com",
-  "latencyMs": 142,
-  "checkedAt": "2026-10-09T13:03:01.596Z"
-}
-```
-
-Returns `503` with an `error` field when Supabase is unreachable, so an uptime
-monitor registers a real failure. Responses are never cached.
-
-If `HEALTH_CHECK_SECRET` is set, callers must send
-`Authorization: Bearer <secret>` or get `401` - including your browser, which
-cannot send that header. Leave it empty to make the endpoint publicly
-checkable.
+`GET /api/health` pings MongoDB and returns `200` with
+`{"status":"ok","database":"reachable",...}`, or `503` with an `error` field when the
+database is unreachable. Responses are never cached. If `HEALTH_CHECK_SECRET` and/or
+`CRON_SECRET` is set, callers must send `Authorization: Bearer <one of them>`.

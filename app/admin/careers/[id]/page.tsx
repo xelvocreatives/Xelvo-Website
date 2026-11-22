@@ -1,5 +1,5 @@
 import { Application } from "@/types";
-import { createClient } from "@/utils/supabase/server";
+import { getApplication } from "@/lib/data";
 import { updateApplicationStatus } from "@/app/actions/career";
 import Link from "next/link";
 import {
@@ -25,14 +25,9 @@ export default async function AdminCareerDetail({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: app, error: dbError } = await supabase
-    .from("Application")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const app = await getApplication(id);
 
-  if (dbError || !app) {
+  if (!app) {
     return (
       <div className="text-white p-10 text-center space-y-4">
         <h2 className="text-2xl font-black text-red-500 uppercase tracking-tight">

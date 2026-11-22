@@ -1,5 +1,4 @@
-import { Project } from "@/types";
-import { createClient } from "@/utils/supabase/server";
+import { getAllProjects } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, LayoutGrid, Zap } from "lucide-react";
 import {
@@ -17,22 +16,7 @@ import { DeleteProjectButton } from "@/components/admin/delete-project-button";
 export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
-  const supabase = await createClient();
-  const { data: projects, error } = await supabase
-    .from("Project")
-    .select("*")
-    .order("createdAt", { ascending: false });
-
-  if (error) {
-    return (
-      <div className="p-8 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
-        <h3 className="text-red-500 font-bold text-xl">Data Error</h3>
-        <p className="text-gray-400 mt-2">{error.message}</p>
-      </div>
-    );
-  }
-
-  if (!projects) return null;
+  const projects = await getAllProjects();
 
   return (
     <div className="space-y-10 animate-fade-in">
@@ -118,7 +102,7 @@ export default async function ProjectsPage() {
                   </td>
                 </tr>
               ) : (
-                (projects as Project[]).map((project) => (
+                projects.map((project) => (
                   <tr
                     key={project.id}
                     className="hover:bg-white/[0.01] transition-all group"

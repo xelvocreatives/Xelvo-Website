@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { getDashboardData } from "@/lib/data";
 import {
   MessageSquare,
   FolderKanban,
@@ -15,37 +15,19 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const supabase = await createClient();
-
-  // Fetch all counts and recent data parallel
-  const [
+  const {
     inquiryCount,
     projectCount,
     testimonialCount,
     applicationCount,
     recentInquiries,
     recentApplications,
-  ] = await Promise.all([
-    supabase.from("Inquiry").select("*", { count: "exact", head: true }),
-    supabase.from("Project").select("*", { count: "exact", head: true }),
-    supabase.from("Testimonial").select("*", { count: "exact", head: true }),
-    supabase.from("Application").select("*", { count: "exact", head: true }),
-    supabase
-      .from("Inquiry")
-      .select("*")
-      .order("createdAt", { ascending: false })
-      .limit(3),
-    supabase
-      .from("Application")
-      .select("*")
-      .order("createdAt", { ascending: false })
-      .limit(3),
-  ]);
+  } = await getDashboardData();
 
   const stats = [
     {
       label: "Business Leads",
-      value: inquiryCount.count || 0,
+      value: inquiryCount,
       icon: MessageSquare,
       color: "from-blue-500 to-cyan-400",
       glow: "shadow-blue-500/20",
@@ -53,7 +35,7 @@ export default async function AdminDashboard() {
     },
     {
       label: "Talent Pool",
-      value: applicationCount.count || 0,
+      value: applicationCount,
       icon: UserPlus,
       color: "from-[#FF6600] to-[#FF8800]",
       glow: "shadow-[#FF6600]/20",
@@ -61,7 +43,7 @@ export default async function AdminDashboard() {
     },
     {
       label: "Live Projects",
-      value: projectCount.count || 0,
+      value: projectCount,
       icon: FolderKanban,
       color: "from-purple-500 to-pink-500",
       glow: "shadow-purple-500/20",
@@ -69,7 +51,7 @@ export default async function AdminDashboard() {
     },
     {
       label: "Client Love",
-      value: testimonialCount.count || 0,
+      value: testimonialCount,
       icon: Star,
       color: "from-yellow-400 to-orange-500",
       glow: "shadow-yellow-500/20",
@@ -143,9 +125,9 @@ export default async function AdminDashboard() {
             </Link>
           </div>
           <div className="p-4 flex-1">
-            {recentInquiries.data && recentInquiries.data.length > 0 ? (
+            {recentInquiries.length > 0 ? (
               <div className="space-y-2">
-                {recentInquiries.data.map((lead: Inquiry) => (
+                {recentInquiries.map((lead: Inquiry) => (
                   <div
                     key={lead.id}
                     className="p-6 rounded-[24px] bg-white/2 border border-transparent hover:border-white/5 hover:bg-white/4 transition-all flex items-center justify-between group"
@@ -201,9 +183,9 @@ export default async function AdminDashboard() {
             </Link>
           </div>
           <div className="p-4 flex-1">
-            {recentApplications.data && recentApplications.data.length > 0 ? (
+            {recentApplications.length > 0 ? (
               <div className="space-y-2">
-                {recentApplications.data.map((app: Application) => (
+                {recentApplications.map((app: Application) => (
                   <div
                     key={app.id}
                     className="p-6 rounded-[24px] bg-white/2 border border-transparent hover:border-white/5 hover:bg-white/4 transition-all flex items-center gap-4 group"

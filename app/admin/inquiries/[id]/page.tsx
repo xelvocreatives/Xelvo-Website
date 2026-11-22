@@ -1,5 +1,5 @@
 import { Inquiry } from "@/types";
-import { createClient } from "@/utils/supabase/server";
+import { getInquiry } from "@/lib/data";
 import { updateInquiryStatus } from "@/app/actions/inquire";
 import Link from "next/link";
 import {
@@ -23,14 +23,9 @@ export default async function AdminInquiryDetail({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: lead, error: dbError } = await supabase
-    .from("Inquiry")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const lead = await getInquiry(id);
 
-  if (dbError || !lead) {
+  if (!lead) {
     return (
       <div className="text-white p-10 text-center space-y-4">
         <h2 className="text-2xl font-black text-red-500 uppercase tracking-tight">

@@ -5,7 +5,7 @@ export interface Project {
   imageUrl: string | null;
   category: string;
   isFeatured: boolean;
-  createdAt: string; // Supabase returns ISO string
+  createdAt: string; // ISO string (stored as a Date in MongoDB)
   updatedAt: string;
 }
 

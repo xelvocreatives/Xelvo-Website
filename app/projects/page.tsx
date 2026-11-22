@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { getPortfolioProjects } from "@/lib/data";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CaseStudies } from "@/components/CaseStudies";
@@ -8,14 +8,7 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
-  const supabase = await createClient();
-  const { data: projects } = await supabase
-    .from("Project")
-    .select("*")
-    .eq("isFeatured", false)
-    .order("createdAt", { ascending: false });
-
-  if (!projects) return null;
+  const projects = await getPortfolioProjects();
 
   return (
     <>

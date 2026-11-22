@@ -1,33 +1,11 @@
-import { Inquiry } from "@/types";
-import { createClient } from "@/utils/supabase/server";
+import { getAllInquiries } from "@/lib/data";
 import Link from "next/link";
 import { Mail, User, Calendar, Zap, Building2, Target } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminInquiriesPage() {
-  const supabase = await createClient();
-  const { data: inquiries, error: dbError } = await supabase
-    .from("Inquiry")
-    .select("*")
-    .order("createdAt", { ascending: false });
-
-  if (dbError) {
-    return (
-      <div className="p-8 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
-        <h3 className="text-red-500 font-bold text-xl mb-2">Database Error</h3>
-        <p className="text-gray-400 mb-4">
-          Could not fetch inquiries. You may need to update your database schema
-          to match the new Inquiry model.
-        </p>
-        <pre className="mt-4 p-4 bg-black/40 rounded-lg text-left text-xs text-red-400 overflow-x-auto">
-          {dbError.message}
-        </pre>
-      </div>
-    );
-  }
-
-  if (!inquiries) return null;
+  const inquiries = await getAllInquiries();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -93,7 +71,7 @@ export default async function AdminInquiriesPage() {
                   </td>
                 </tr>
               ) : (
-                (inquiries as Inquiry[]).map((inquiry) => (
+                inquiries.map((inquiry) => (
                   <tr
                     key={inquiry.id}
                     className="hover:bg-white/[0.01] transition-all group"

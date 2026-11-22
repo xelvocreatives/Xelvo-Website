@@ -1,5 +1,5 @@
 import { Testimonial } from "@/types";
-import { createClient } from "@/utils/supabase/server";
+import { getAllTestimonials } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
@@ -26,22 +26,7 @@ import { DeleteTestimonialButton } from "@/components/admin/delete-testimonial-b
 export const dynamic = "force-dynamic";
 
 export default async function TestimonialsPage() {
-  const supabase = await createClient();
-  const { data: testimonials, error } = await supabase
-    .from("Testimonial")
-    .select("*")
-    .order("createdAt", { ascending: false });
-
-  if (error) {
-    return (
-      <div className="p-8 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
-        <h3 className="text-red-500 font-bold text-xl">System Error</h3>
-        <p className="text-gray-400 mt-2">{error.message}</p>
-      </div>
-    );
-  }
-
-  if (!testimonials) return null;
+  const testimonials = await getAllTestimonials();
 
   return (
     <div className="space-y-10 animate-fade-in">

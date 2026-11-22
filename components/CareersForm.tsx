@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useActionState } from "react";
+import React, { useState, useActionState, startTransition } from "react";
 import {
   User,
   Phone,
@@ -18,6 +18,7 @@ import {
 import { ContactInput } from "./ui/contact-input";
 import { cn } from "@/lib/utils";
 import { submitApplication } from "@/app/actions/career";
+import { uploadToCloudinary } from "@/lib/upload-client";
 
 const initialState = {
   success: false,
@@ -28,10 +29,39 @@ const initialState = {
 export function CareersForm() {
   const [location, setLocation] = useState("remote");
   const [fileName, setFileName] = useState("");
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction, isSubmitting] = useActionState(
     submitApplication,
     initialState,
   );
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const isPending = isSubmitting || uploading;
+
+  // Upload the CV straight to Cloudinary, then submit only its URL.
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const resume = formData.get("resume");
+    formData.delete("resume");
+    setUploadError(null);
+
+    if (!(resume instanceof File) || resume.size === 0) {
+      setUploadError("Please upload your resume.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      formData.set("resumeUrl", await uploadToCloudinary(resume, "resume"));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed.");
+      return;
+    } finally {
+      setUploading(false);
+    }
+
+    startTransition(() => formAction(formData));
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -85,7 +115,7 @@ export function CareersForm() {
             </p>
           </div>
 
-          <form action={formAction} className="max-w-[800px] mx-auto space-y-8">
+          <form onSubmit={handleSubmit} className="max-w-[800px] mx-auto space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Full Name */}
               <div className="space-y-3">
@@ -330,10 +360,10 @@ export function CareersForm() {
               />
             </div>
 
-            {state?.error && (
+            {(uploadError || state?.error) && (
               <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl flex items-center gap-3 text-red-500 text-sm">
                 <AlertCircle size={18} />
-                {state.error}
+                {uploadError || state.error}
               </div>
             )}
 
@@ -350,7 +380,11 @@ export function CareersForm() {
               disabled={isPending}
               className="w-full py-5 rounded-2xl bg-[#FF6600] text-white font-bold text-xl hover:bg-[#FF7700] hover:scale-[1.01] active:scale-[0.99] transition-all shadow-[0_10px_30px_rgba(255,92,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
             >
-              {isPending ? "Submitting Application..." : "Submit Application"}
+              {uploading
+                ? "Uploading Resume..."
+                : isPending
+                  ? "Submitting Application..."
+                  : "Submit Application"}
             </button>
           </form>
         </div>

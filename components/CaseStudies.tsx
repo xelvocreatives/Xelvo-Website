@@ -1,16 +1,6 @@
 import Image from "next/image";
 import { GradientText } from "./ui/GradientText";
-
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  imageUrl: string;
-  category: string;
-  isFeatured: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import type { Project } from "@/types";
 
 interface CaseStudiesProps {
   projects?: Project[];

@@ -1,33 +1,11 @@
-import { Application } from "@/types";
-import { createClient } from "@/utils/supabase/server";
+import { getAllApplications } from "@/lib/data";
 import Link from "next/link";
 import { User, Mail, Briefcase, Calendar, MapPin, Users2 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminCareersPage() {
-  const supabase = await createClient();
-  const { data: applications, error: dbError } = await supabase
-    .from("Application")
-    .select("*")
-    .order("createdAt", { ascending: false });
-
-  if (dbError) {
-    return (
-      <div className="p-8 bg-red-500/10 border border-red-500/20 rounded-2xl text-center">
-        <h3 className="text-red-500 font-bold text-xl mb-2">Database Error</h3>
-        <p className="text-gray-400">
-          Could not fetch applications. Please ensure you have run the SQL setup
-          in your Supabase editor as described in the walkthrough.
-        </p>
-        <pre className="mt-4 p-4 bg-black/40 rounded-lg text-left text-xs text-red-400 overflow-x-auto">
-          {dbError.message}
-        </pre>
-      </div>
-    );
-  }
-
-  if (!applications) return null;
+  const applications = await getAllApplications();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -93,7 +71,7 @@ export default async function AdminCareersPage() {
                   </td>
                 </tr>
               ) : (
-                (applications as Application[]).map((app) => (
+                applications.map((app) => (
                   <tr
                     key={app.id}
                     className="hover:bg-white/[0.01] transition-all group"

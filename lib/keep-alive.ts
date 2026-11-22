@@ -1,5 +1,5 @@
 /**
- * In-process Supabase keep-alive.
+ * In-process database keep-alive.
  *
  * Started once from instrumentation.ts when the server boots. Works on any
  * host that keeps a Node process running (Hostinger Node.js hosting, a VPS,
@@ -17,11 +17,11 @@
  * KEEPALIVE_URL to hit the public URL instead.
  *
  * If that HTTP call fails (wrong port, route not yet listening), it falls
- * back to a direct Supabase ping, so the database still gets its activity
+ * back to a direct database ping, so the database still gets its activity
  * instead of the keep-alive silently doing nothing.
  */
 
-import { pingSupabase } from "./supabase-ping";
+import { pingDatabase } from "./db-ping";
 
 const DEFAULT_INTERVAL_MINUTES = 5;
 const FIRST_RUN_DELAY_MS = 10_000; // let the server finish booting
@@ -122,7 +122,7 @@ export function startKeepAlive(): void {
           : `HTTP ${response.status} from ${url}`;
       console.warn(`[keep-alive] #${state.pings} ${state.lastError}`);
     } catch (err) {
-      // The endpoint was unreachable. Fall back to a direct Supabase ping so
+      // The endpoint was unreachable. Fall back to a direct database ping so
       // the database still registers activity.
       state.pings += 1;
       state.failures += 1;
@@ -133,17 +133,17 @@ export function startKeepAlive(): void {
       } (target ${url})`;
 
       console.warn(
-        `[keep-alive] #${state.pings} could not reach ${url}: ${state.lastError}. Falling back to a direct Supabase ping.`,
+        `[keep-alive] #${state.pings} could not reach ${url}: ${state.lastError}. Falling back to a direct database ping.`,
       );
 
-      const fallback = await pingSupabase();
-      state.lastTarget = "supabase (fallback)";
+      const fallback = await pingDatabase();
+      state.lastTarget = "database (fallback)";
       state.lastLatencyMs = fallback.latencyMs;
       state.lastOk = fallback.ok;
 
       if (fallback.ok) {
         console.log(
-          `[keep-alive] Fallback ping ok - Supabase awake (${fallback.latencyMs}ms).`,
+          `[keep-alive] Fallback ping ok - database awake (${fallback.latencyMs}ms).`,
         );
       } else {
         state.lastError += ` | fallback also failed: ${fallback.error}`;

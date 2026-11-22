@@ -2,17 +2,7 @@ import { Star } from "lucide-react";
 import Image from "next/image";
 import HeartLogo from "../public/images/feedback-logo.svg";
 import ArrowElement from "../public/images/arrow-element.svg";
-
-interface Testimonial {
-  id: string;
-  clientName: string;
-  company: string;
-  rating: number;
-  text: string;
-  imageUrl: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import type { Testimonial } from "@/types";
 
 interface ClientFeedbackProps {
   testimonials?: Testimonial[];

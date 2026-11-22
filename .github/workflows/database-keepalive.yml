@@ -1,0 +1,62 @@
+name: Database Keep-Alive
+
+# Backup for the Vercel Cron in vercel.json. MongoDB Atlas pauses a free
+# cluster after 30 days with zero connections; a daily call to the app's
+# /api/health endpoint (which pings MongoDB) keeps it awake.
+#
+# Setup (GitHub -> Settings -> Secrets and variables -> Actions):
+#   Variable HEALTH_CHECK_URL     e.g. https://www.xelvocreatives.com
+#   Secret   HEALTH_CHECK_SECRET  same value as in Vercel (if set there)
+on:
+  schedule:
+    - cron: "30 6 * * *"
+  workflow_dispatch: # manual run from the Actions tab
+
+concurrency:
+  group: database-keepalive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping app health endpoint
+        env:
+          HEALTH_URL: ${{ vars.HEALTH_CHECK_URL || secrets.HEALTH_CHECK_URL }}
+          HEALTH_SECRET: ${{ secrets.HEALTH_CHECK_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${HEALTH_URL:-}" ]; then
+            echo "::error::Set the HEALTH_CHECK_URL repo variable (e.g. https://www.xelvocreatives.com)"
+            exit 1
+          fi
+
+          auth_args=()
+          if [ -n "${HEALTH_SECRET:-}" ]; then
+            auth_args=(-H "Authorization: Bearer ${HEALTH_SECRET}")
+          fi
+
+          for attempt in 1 2 3; do
+            http_code=$(curl -sS -o response.json -w '%{http_code}' \
+              --max-time 30 "${auth_args[@]}" \
+              "${HEALTH_URL%/}/api/health") || http_code="000"
+
+            cat response.json 2>/dev/null; echo
+
+            if [ "${http_code}" = "200" ]; then
+              echo "- Database: awake (HTTP 200)" >> "${GITHUB_STEP_SUMMARY}"
+              exit 0
+            fi
+            if [ "${http_code}" = "401" ]; then
+              echo "::error::401 Unauthorized - HEALTH_CHECK_SECRET doesn't match the one set in Vercel."
+              exit 1
+            fi
+
+            echo "::warning::Attempt ${attempt}: HTTP ${http_code}"
+            if [ "${attempt}" -lt 3 ]; then sleep 20; fi
+          done
+
+          echo "::error::Health check failed after 3 attempts - the database may be paused or unreachable."
+          exit 1

@@ -1,20 +1,22 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
-import { createAdminClient } from "@/utils/supabase/admin";
+import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { saveFile } from "@/lib/file-upload";
+import { isAdmin, UNAUTHORIZED } from "@/lib/auth-guard";
+import { isOwnUploadUrl } from "@/lib/cloudinary";
+import { parseId, testimonials } from "@/lib/db/models";
 
 const TestimonialSchema = z.object({
-  clientName: z.string().min(1, "Client Name is required"),
-  company: z.string().min(1, "Company is required"),
-  text: z.string().min(10, "Review text must be at least 10 characters"),
+  clientName: z.string().trim().min(1, "Client Name is required"),
+  company: z.string().trim().min(1, "Company is required"),
+  text: z.string().trim().min(10, "Review text must be at least 10 characters"),
   rating: z.coerce.number().min(1).max(5),
   socialPlatform: z.string().optional(),
 });
 
 export type TestimonialState = {
+  ok?: boolean;
   errors?: {
     clientName?: string[];
     company?: string[];
@@ -25,176 +27,128 @@ export type TestimonialState = {
   message?: string | null;
 };
 
-export async function createTestimonial(
-  prevState: TestimonialState,
-  formData: FormData
-) {
-  const validatedFields = TestimonialSchema.safeParse({
-    clientName: formData.get("clientName"),
-    company: formData.get("company"),
-    text: formData.get("text"),
-    rating: formData.get("rating"),
-    socialPlatform: formData.get("socialPlatform"),
-  });
+function readForm(formData: FormData) {
+  return {
+    parsed: TestimonialSchema.safeParse({
+      clientName: formData.get("clientName"),
+      company: formData.get("company"),
+      text: formData.get("text"),
+      rating: formData.get("rating"),
+      socialPlatform: formData.get("socialPlatform") ?? undefined,
+    }),
+    // Set by the form after the browser uploads the photo to Cloudinary.
+    imageUrl: formData.get("imageUrl"),
+  };
+}
 
-  if (!validatedFields.success) {
+function revalidateTestimonialPages() {
+  revalidatePath("/admin/testimonials");
+  revalidatePath("/admin");
+  revalidatePath("/");
+}
+
+export async function createTestimonial(
+  _prevState: TestimonialState,
+  formData: FormData,
+): Promise<TestimonialState> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
+
+  const { parsed, imageUrl } = readForm(formData);
+  if (!parsed.success) {
     return {
-      errors: validatedFields.error.flatten().fieldErrors,
+      ok: false,
+      errors: parsed.error.flatten().fieldErrors,
       message: "Missing Fields. Failed to Create Testimonial.",
     };
   }
 
-  const { clientName, company, text, rating, socialPlatform } =
-    validatedFields.data;
-
-  let imageUrl: string | null = null;
-  const imageFile = formData.get("image") as File;
-  if (imageFile) {
-    imageUrl = await saveFile(imageFile);
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      message: "Unauthorized: You must be logged in.",
-    };
-  }
+  const { socialPlatform, ...fields } = parsed.data;
 
   try {
-    const supabaseAdmin = createAdminClient();
-    const { error } = await supabaseAdmin.from("Testimonial").insert({
-      clientName,
-      company,
-      text,
-      rating,
+    const now = new Date();
+    await (await testimonials()).insertOne({
+      _id: new ObjectId(),
+      ...fields,
       socialPlatform: socialPlatform || null,
-      imageUrl,
+      socialLink: null,
+      imageUrl: isOwnUploadUrl(imageUrl, "testimonial") ? imageUrl : null,
+      createdAt: now,
+      updatedAt: now,
     });
-
-    if (error) throw error;
   } catch (error) {
     console.error("Database Error:", error);
     return {
+      ok: false,
       message: "Database Error: Failed to Create Testimonial.",
     };
   }
 
-  revalidatePath("/admin/testimonials");
-  revalidatePath("/");
-  return { message: "Testimonial Created" };
+  revalidateTestimonialPages();
+  return { ok: true, message: "Testimonial Created" };
 }
 
 export async function updateTestimonial(
   id: string,
-  prevState: TestimonialState,
-  formData: FormData
-) {
-  const validatedFields = TestimonialSchema.safeParse({
-    clientName: formData.get("clientName"),
-    company: formData.get("company"),
-    text: formData.get("text"),
-    rating: formData.get("rating"),
-    socialPlatform: formData.get("socialPlatform"),
-  });
+  _prevState: TestimonialState,
+  formData: FormData,
+): Promise<TestimonialState> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
 
-  if (!validatedFields.success) {
+  const _id = parseId(id);
+  if (!_id) return { ok: false, message: "Testimonial not found." };
+
+  const { parsed, imageUrl } = readForm(formData);
+  if (!parsed.success) {
     return {
-      errors: validatedFields.error.flatten().fieldErrors,
+      ok: false,
+      errors: parsed.error.flatten().fieldErrors,
       message: "Missing Fields. Failed to Update Testimonial.",
     };
   }
 
-  const { clientName, company, text, rating, socialPlatform } =
-    validatedFields.data;
-
-  let imageUrl;
-  const imageFile = formData.get("image") as File;
-  if (imageFile && imageFile.size > 0) {
-    imageUrl = await saveFile(imageFile);
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      message: "Unauthorized: You must be logged in.",
-    };
-  }
+  const { socialPlatform, ...fields } = parsed.data;
 
   try {
-    const updateData: {
-      clientName: string;
-      company: string;
-      text: string;
-      rating: number;
-      socialPlatform: string | null;
-      updatedAt: string;
-      imageUrl?: string;
-    } = {
-      clientName,
-      company,
-      text,
-      rating,
-      socialPlatform: socialPlatform || null,
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (imageUrl) {
-      updateData.imageUrl = imageUrl;
+    const result = await (await testimonials()).updateOne(
+      { _id },
+      {
+        $set: {
+          ...fields,
+          socialPlatform: socialPlatform || null,
+          updatedAt: new Date(),
+          // Only replace the photo when a new one was uploaded.
+          ...(isOwnUploadUrl(imageUrl, "testimonial") ? { imageUrl } : {}),
+        },
+      },
+    );
+    if (result.matchedCount === 0) {
+      return { ok: false, message: "Testimonial not found." };
     }
-
-    const supabaseAdmin = createAdminClient();
-
-    const { error } = await supabaseAdmin
-      .from("Testimonial")
-      .update(updateData)
-      .eq("id", id);
-
-    if (error) throw error;
   } catch (error) {
     console.error("Database Error:", error);
     return {
+      ok: false,
       message: "Database Error: Failed to Update Testimonial.",
     };
   }
 
-  revalidatePath("/admin/testimonials");
-  revalidatePath("/");
-  return { message: "Testimonial Updated" };
+  revalidateTestimonialPages();
+  return { ok: true, message: "Testimonial Updated" };
 }
 
 export async function deleteTestimonial(id: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (!(await isAdmin())) return { message: UNAUTHORIZED };
 
-  if (!user) {
-    return {
-      message: "Unauthorized: You must be logged in.",
-    };
-  }
+  const _id = parseId(id);
+  if (!_id) return { message: "Testimonial not found." };
 
   try {
-    const supabaseAdmin = createAdminClient();
-    const { error } = await supabaseAdmin
-      .from("Testimonial")
-      .delete()
-      .eq("id", id);
-    if (error) throw error;
-
-    revalidatePath("/admin/testimonials");
-    revalidatePath("/");
-    return { message: "Deleted Testimonial" };
+    await (await testimonials()).deleteOne({ _id });
   } catch (error) {
     console.error("Database Error:", error);
     return { message: "Database Error: Failed to Delete Testimonial." };
   }
+
+  revalidateTestimonialPages();
+  return { message: "Deleted Testimonial" };
 }

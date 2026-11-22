@@ -1,13 +1,14 @@
 "use client";
 
-import { useActionState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { createProject, updateProject, State } from "@/app/actions/projects";
+import { uploadToCloudinary } from "@/lib/upload-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Project } from "@/types";
-import { Upload, Star, CheckCircle2 } from "lucide-react";
+import { Upload, Star, CheckCircle2, AlertCircle } from "lucide-react";
 import Image from "next/image";
 
 export function ProjectForm({
@@ -21,13 +22,47 @@ export function ProjectForm({
     ? updateProject.bind(null, project.id)
     : null;
 
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction, isSubmitting] = useActionState(
     project ? updateProjectWithId! : createProject,
     initialState,
   );
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [fileName, setFileName] = useState("");
+  const isPending = isSubmitting || uploading;
+
+  // Upload the image straight to Cloudinary, then submit only its URL, so
+  // large files never hit the server's request-size limit.
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const image = formData.get("image");
+    formData.delete("image");
+    setUploadError(null);
+
+    if (image instanceof File && image.size > 0) {
+      setUploading(true);
+      try {
+        formData.set("imageUrl", await uploadToCloudinary(image, "project"));
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : "Upload failed.");
+        return;
+      } finally {
+        setUploading(false);
+      }
+    } else if (!project) {
+      setUploadError("Please choose a project image.");
+      return;
+    }
+
+    startTransition(() => formAction(formData));
+  };
+
+  const feedback = uploadError ?? state.message;
+  const feedbackOk = !uploadError && state.ok;
 
   return (
-    <form action={formAction} className="space-y-8 px-2 max-w-2xl mx-auto pb-8">
+    <form onSubmit={handleSubmit} className="space-y-8 px-2 max-w-2xl mx-auto pb-8">
       <div className="grid grid-cols-1 gap-8">
         {/* Title Field */}
         <div className="space-y-3">
@@ -127,13 +162,14 @@ export function ProjectForm({
                 id="image"
                 name="image"
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
                 className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
               />
               <div className="h-20 border-2 border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-3 text-gray-500 group-hover:border-[#FF6600]/30 group-hover:text-white transition-all bg-white/1">
                 <Upload size={18} />
-                <span className="text-xs font-black uppercase tracking-widest">
-                  Deploy New Visual
+                <span className="text-xs font-black uppercase tracking-widest truncate max-w-[80%]">
+                  {fileName || "Deploy New Visual"}
                 </span>
               </div>
             </div>
@@ -175,11 +211,17 @@ export function ProjectForm({
         </div>
       </div>
 
-      {state.message && (
-        <div className="flex items-center gap-3 p-5 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-500 animate-fade-in shadow-lg">
-          <CheckCircle2 size={20} />
+      {feedback && (
+        <div
+          className={`flex items-center gap-3 p-5 rounded-2xl animate-fade-in shadow-lg border ${
+            feedbackOk
+              ? "bg-green-500/10 border-green-500/20 text-green-500"
+              : "bg-red-500/10 border-red-500/20 text-red-500"
+          }`}
+        >
+          {feedbackOk ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
           <p className="text-xs font-black uppercase tracking-widest">
-            {state.message}
+            {feedback}
           </p>
         </div>
       )}
@@ -190,7 +232,9 @@ export function ProjectForm({
           disabled={isPending}
           className="w-full bg-linear-to-r from-[#FF6600] to-[#FF8800] hover:scale-[1.02] active:scale-[0.98] transition-all text-white font-black uppercase tracking-[0.2em] text-xs h-16 rounded-[24px] shadow-2xl shadow-[#FF6600]/20"
         >
-          {isPending
+          {uploading
+            ? "UPLOADING VISUAL..."
+            : isPending
             ? "INITIALIZING DEPLOYMENT..."
             : project
               ? "UPDATE CORE RECORD"

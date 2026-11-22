@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState } from "react";
+import { login } from "@/app/actions/auth";
 
 export default function LoginPage() {
   return (
@@ -11,44 +11,12 @@ export default function LoginPage() {
   );
 }
 
-// Client component for the form
 function LoginForm() {
-  const [pending, setPending] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const router = useRouter();
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPending(true);
-    setErrorMessage("");
-
-    const formData = new FormData(e.target as HTMLFormElement);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-
-    try {
-      // Dynamic import to avoid server-side issues (though this is a client component)
-      const { createClient } = await import("@/utils/supabase/client");
-      const supabase = createClient();
-
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        setErrorMessage(error.message);
-      } else {
-        router.push("/admin");
-        router.refresh(); // Ensure middleware re-runs
-      }
-    } catch (e) {
-      console.error(e);
-      setErrorMessage("An unexpected error occurred");
-    } finally {
-      setPending(false);
-    }
-  };
+  const [state, formAction, pending] = useActionState(login, {
+    error: null,
+    email: "",
+  });
+  const errorMessage = state.error;
 
   return (
     <div className="w-full max-w-md bg-[#181818] p-8 rounded-2xl border border-[#333] shadow-2xl">
@@ -56,7 +24,7 @@ function LoginForm() {
         <h1 className="text-3xl font-bold text-white">Admin Access</h1>
       </div>
 
-      <form onSubmit={handleLogin} className="flex flex-col gap-5">
+      <form action={formAction} className="flex flex-col gap-5">
         <div>
           <label className="block text-sm font-medium text-gray-400 mb-1">
             Email
@@ -64,6 +32,10 @@ function LoginForm() {
           <input
             name="email"
             type="email"
+            // `key` remounts the input so the kept email shows after a failed try.
+            key={state.email}
+            defaultValue={state.email}
+            autoComplete="username"
             required
             className="w-full bg-[#111] border border-[#333] rounded-lg p-3 text-white focus:outline-none focus:border-[#FF6600] transition-colors"
             placeholder="admin@xelvo.com"
@@ -77,6 +49,7 @@ function LoginForm() {
           <input
             name="password"
             type="password"
+            autoComplete="current-password"
             required
             className="w-full bg-[#111] border border-[#333] rounded-lg p-3 text-white focus:outline-none focus:border-[#FF6600] transition-colors"
             placeholder="••••••••"

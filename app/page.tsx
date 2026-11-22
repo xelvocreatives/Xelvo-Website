@@ -13,25 +13,15 @@ import { ScrollToTop } from "../components/ScrollToTop";
 import { SEO } from "../components/SEO";
 import { Header } from "../components/Header";
 import { Analytics } from "../components/Analytics";
-import { createClient } from "@/utils/supabase/server";
+import { getFeaturedProjects, getLatestTestimonials } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const supabase = await createClient();
-
-  const { data: projects } = await supabase
-    .from("Project")
-    .select("*")
-    .eq("isFeatured", true)
-    .order("createdAt", { ascending: false })
-    .limit(4);
-
-  const { data: testimonials } = await supabase
-    .from("Testimonial")
-    .select("*")
-    .order("createdAt", { ascending: false })
-    .limit(9);
+  const [projects, testimonials] = await Promise.all([
+    getFeaturedProjects(4),
+    getLatestTestimonials(9),
+  ]);
 
   return (
     <>
@@ -50,8 +40,8 @@ export default async function Home() {
         <ValueProposition />
         <Services />
         <Framework />
-        <CaseStudies projects={projects || []} />
-        <ClientFeedback testimonials={testimonials || []} />
+        <CaseStudies projects={projects} />
+        <ClientFeedback testimonials={testimonials} />
         <FAQ />
         <FinalCTA />
         <ContactSection />
