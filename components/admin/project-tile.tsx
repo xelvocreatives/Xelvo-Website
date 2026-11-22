@@ -1,6 +1,6 @@
 import * as React from "react";
 import Image from "next/image";
-import { House, ImageOff } from "lucide-react";
+import { House, ImageOff, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
 
@@ -48,6 +48,12 @@ export function ProjectTile({
       />
 
       <div className="absolute top-3 left-3 flex gap-2">
+        {project.images.length > 1 && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-sm">
+            <Layers className="size-3" aria-hidden />
+            {project.images.length}
+          </span>
+        )}
         {project.isFeatured && (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-xa-accent px-2.5 py-1 text-[11px] font-bold text-xa-on-accent">
             <House className="size-3" aria-hidden />

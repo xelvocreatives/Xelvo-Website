@@ -51,17 +51,6 @@ export function getFeaturedProjects(limit = 4): Promise<Project[]> {
   );
 }
 
-export function getPortfolioProjects(): Promise<Project[]> {
-  return publicRead("getPortfolioProjects", async () =>
-    (
-      await (await projects())
-        .find({ isFeatured: false })
-        .sort(arranged)
-        .toArray()
-    ).map(toProject),
-  );
-}
-
 export function getLatestTestimonials(limit = 9): Promise<Testimonial[]> {
   return publicRead("getLatestTestimonials", async () =>
     (
@@ -171,4 +160,15 @@ export async function getAdminCounts() {
     console.error("[data] getAdminCounts failed:", error);
     return { newLeads: 0, newApplications: 0 };
   }
+}
+
+/**
+ * Everything the Portfolio page shows: home-page (featured) projects first in
+ * the admin's order, then the rest. Never throws.
+ */
+export function getPortfolioProjects(): Promise<Project[]> {
+  return publicRead("getPortfolioProjects", async () => {
+    const all = (await (await projects()).find().sort(arranged).toArray()).map(toProject);
+    return [...all.filter((p) => p.isFeatured), ...all.filter((p) => !p.isFeatured)];
+  });
 }

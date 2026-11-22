@@ -115,3 +115,6 @@ export function showsOn(count: number, limit: number, where: string): string {
   if (count <= limit) return `All ${count} show on ${where}`;
   return `${count} here · the first ${limit} show on ${where}`;
 }
+
+/** Most images one project can hold (cover + gallery). */
+export const MAX_PROJECT_IMAGES = 12;

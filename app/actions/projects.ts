@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { isAdmin, UNAUTHORIZED } from "@/lib/auth-guard";
 import { isOwnUploadUrl } from "@/lib/cloudinary";
+import { MAX_PROJECT_IMAGES } from "@/lib/admin-format";
 import { parseId, projects } from "@/lib/db/models";
 import { applyOrder, topOrder, type Orderable } from "@/lib/db/ordering";
 import type { Collection } from "mongodb";
@@ -32,7 +33,7 @@ export type State = {
   errors?: {
     title?: string[];
     description?: string[];
-    imageUrl?: string[];
+    images?: string[];
     category?: string[];
   };
   message?: string | null;
@@ -45,15 +46,40 @@ function readForm(formData: FormData) {
       description: formData.get("description"),
       category: formData.get("category"),
     }),
-    // Set by the form after the browser uploads the image to Cloudinary.
-    imageUrl: formData.get("imageUrl"),
+    // JSON array of image URLs in display order, set by the form after the
+    // browser uploads any new files to Cloudinary.
+    images: formData.get("images"),
     isFeatured: formData.get("isFeatured") === "on",
   };
 }
 
+/**
+ * Validates the gallery: 1-12 URLs, each either a fresh upload to this
+ * account's project folder or an image the project already had.
+ */
+function readImages(raw: FormDataEntryValue | null, existing: string[] = []): string[] | string {
+  let list: unknown;
+  try {
+    list = JSON.parse(typeof raw === "string" ? raw : "[]");
+  } catch {
+    return "Something went wrong with the images. Please try again.";
+  }
+  if (!Array.isArray(list) || list.length === 0) return "Add at least one image for this project.";
+  if (list.length > MAX_PROJECT_IMAGES) return `A project can have up to ${MAX_PROJECT_IMAGES} images.`;
+  const urls = list.filter((u): u is string => typeof u === "string");
+  if (urls.length !== list.length || new Set(urls).size !== urls.length) {
+    return "Something went wrong with the images. Please try again.";
+  }
+  const allowed = new Set(existing);
+  if (!urls.every((u) => allowed.has(u) || isOwnUploadUrl(u, "project"))) {
+    return "One of the images couldn't be verified. Please upload it again.";
+  }
+  return urls;
+}
+
 function revalidateProjectPages() {
   revalidatePath("/admin", "layout");
-  revalidatePath("/projects");
+  revalidatePath("/portfolio");
   revalidatePath("/");
 }
 
@@ -63,18 +89,15 @@ export async function createProject(
 ): Promise<State> {
   if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
 
-  const { parsed, imageUrl, isFeatured } = readForm(formData);
-  if (!parsed.success) {
+  const { parsed, images: rawImages, isFeatured } = readForm(formData);
+  const images = readImages(rawImages);
+  if (!parsed.success || typeof images === "string") {
     return {
       ok: false,
-      errors: parsed.error.flatten().fieldErrors,
-      message: "Please fix the highlighted fields.",
-    };
-  }
-  if (!isOwnUploadUrl(imageUrl, "project")) {
-    return {
-      ok: false,
-      errors: { imageUrl: ["Add a cover image for this project."] },
+      errors: {
+        ...(parsed.success ? {} : parsed.error.flatten().fieldErrors),
+        ...(typeof images === "string" ? { images: [images] } : {}),
+      },
       message: "Please fix the highlighted fields.",
     };
   }
@@ -85,7 +108,8 @@ export async function createProject(
     await col.insertOne({
       _id: new ObjectId(),
       ...parsed.data,
-      imageUrl,
+      images,
+      imageUrl: images[0],
       isFeatured,
       order: await topOrder(col as unknown as Collection<Orderable>),
       createdAt: now,
@@ -110,31 +134,38 @@ export async function updateProject(
   const _id = parseId(id);
   if (!_id) return { ok: false, message: "Project not found." };
 
-  const { parsed, imageUrl, isFeatured } = readForm(formData);
-  if (!parsed.success) {
-    return {
-      ok: false,
-      errors: parsed.error.flatten().fieldErrors,
-      message: "Please fix the highlighted fields.",
-    };
-  }
+  const { parsed, images: rawImages, isFeatured } = readForm(formData);
 
   try {
-    const result = await (await projects()).updateOne(
+    const col = await projects();
+    const current = await col.findOne({ _id });
+    if (!current) return { ok: false, message: "Project not found." };
+
+    const existing = current.images?.length ? current.images : current.imageUrl ? [current.imageUrl] : [];
+    const images = readImages(rawImages, existing);
+    if (!parsed.success || typeof images === "string") {
+      return {
+        ok: false,
+        errors: {
+          ...(parsed.success ? {} : parsed.error.flatten().fieldErrors),
+          ...(typeof images === "string" ? { images: [images] } : {}),
+        },
+        message: "Please fix the highlighted fields.",
+      };
+    }
+
+    await col.updateOne(
       { _id },
       {
         $set: {
           ...parsed.data,
+          images,
+          imageUrl: images[0],
           isFeatured,
           updatedAt: new Date(),
-          // Only replace the image when a new one was uploaded.
-          ...(isOwnUploadUrl(imageUrl, "project") ? { imageUrl } : {}),
         },
       },
     );
-    if (result.matchedCount === 0) {
-      return { ok: false, message: "Project not found." };
-    }
   } catch (error) {
     console.error("Database Error:", error);
     return { ok: false, message: "Couldn’t save your changes. Please try again." };
@@ -186,7 +217,7 @@ export async function setProjectFeatured(
   revalidateProjectPages();
   return {
     ok: true,
-    message: featured ? "Now showing on the home page." : "Moved to the projects page.",
+    message: featured ? "Now showing on the home page." : "Removed from the home page.",
   };
 }
 

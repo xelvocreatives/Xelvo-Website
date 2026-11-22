@@ -79,7 +79,7 @@ export function ProjectsBoard({ projects }: { projects: Project[] }) {
       if (result.ok) {
         toast.success(result.message, {
           id: "project-order",
-          description: section === "home" ? "Home page order updated." : "Projects page order updated.",
+          description: section === "home" ? "Home page order updated." : "Portfolio page order updated.",
         });
       } else {
         setList(previous);
@@ -112,7 +112,7 @@ export function ProjectsBoard({ projects }: { projects: Project[] }) {
             ? [{ label: "Move down", icon: <ArrowDown />, onSelect: () => move(section, items, index, 1) }]
             : []),
           project.isFeatured
-            ? { label: "Move to projects page", icon: <LayoutGrid />, onSelect: () => toggleFeatured(project) }
+            ? { label: "Remove from home page", icon: <LayoutGrid />, onSelect: () => toggleFeatured(project) }
             : { label: "Show on home page", icon: <House />, onSelect: () => toggleFeatured(project) },
           { label: "Delete", icon: <Trash2 />, danger: true, onSelect: () => setToDelete(project) },
         ];
@@ -146,7 +146,7 @@ export function ProjectsBoard({ projects }: { projects: Project[] }) {
     <>
       <PageHeader
         title="Projects"
-        description="Your portfolio on the website. Choose which projects appear on the home page, and drag cards to set the order visitors see."
+        description="Every project appears on your Portfolio page. Choose which ones also appear on the home page, and drag cards to set the order visitors see."
         actions={
           <XaButton variant="primary" onClick={() => openEditor()}>
             <Plus />
@@ -187,16 +187,15 @@ export function ProjectsBoard({ projects }: { projects: Project[] }) {
           </section>
 
           <section aria-labelledby="projects-page">
-            <SectionHeading title="On the projects page" meta={showsOn(others.length, Infinity, "the projects page")} />
+            <SectionHeading title="Portfolio only" meta={others.length ? "Shown on your Portfolio page" : undefined} />
             {others.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-xa-line-strong px-5 py-6 text-sm text-xa-muted">
-                Every project is on the home page right now, so your website&apos;s Projects page is empty.
-                Move some here to fill it.
+                Every project is also on your home page right now. All of them show on your Portfolio page too.
               </p>
             ) : (
               <>
                 {others.length > 1 && (
-                  <ReorderHint>Drag the grip on a card to change the order on your Projects page.</ReorderHint>
+                  <ReorderHint>Drag the grip on a card to change the order on your Portfolio page.</ReorderHint>
                 )}
                 {renderSection("page", others)}
               </>

@@ -2,7 +2,10 @@ export interface Project {
   id: string;
   title: string;
   description: string;
+  /** Cover image (always images[0]); kept for older code paths. */
   imageUrl: string | null;
+  /** Every image of the project in display order; the first is the cover. */
+  images: string[];
   category: string;
   isFeatured: boolean;
   /** Position chosen by the admin (lower = earlier). Missing on never-arranged data. */

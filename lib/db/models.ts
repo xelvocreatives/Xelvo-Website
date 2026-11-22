@@ -14,9 +14,11 @@ type Timestamps = { createdAt: Date; updatedAt: Date };
 /** Old Supabase UUID, kept on migrated documents so the copy script is re-runnable. */
 type Legacy = { legacyId?: string };
 
-export type ProjectDoc = Omit<Project, "id" | "createdAt" | "updatedAt"> &
+// `images` is optional in storage: projects saved before galleries existed only
+// have `imageUrl`, which toProject() turns into a one-image gallery.
+export type ProjectDoc = Omit<Project, "id" | "createdAt" | "updatedAt" | "images"> &
   Timestamps &
-  Legacy & { _id: ObjectId };
+  Legacy & { _id: ObjectId; images?: string[] };
 
 export type TestimonialDoc = Omit<
   Testimonial,
@@ -74,7 +76,10 @@ function serialize<T extends { _id: ObjectId } & Timestamps & Legacy>(doc: T) {
   };
 }
 
-export const toProject = (doc: ProjectDoc): Project => serialize(doc);
+export const toProject = (doc: ProjectDoc): Project => {
+  const images = doc.images?.length ? doc.images : doc.imageUrl ? [doc.imageUrl] : [];
+  return { ...serialize(doc), images, imageUrl: images[0] ?? null };
+};
 export const toTestimonial = (doc: TestimonialDoc): Testimonial =>
   serialize(doc);
 export const toInquiry = (doc: InquiryDoc): Inquiry => serialize(doc);
