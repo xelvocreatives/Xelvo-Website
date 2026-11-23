@@ -4,6 +4,8 @@ import * as React from "react";
 import Image from "next/image";
 import { GradientText } from "./ui/GradientText";
 import type { Project } from "@/types";
+import type { HomeSections } from "@/lib/site/schema";
+import { HighlightedText } from "./site/highlighted-text";
 import { ProjectPreview, type PreviewProject } from "./portfolio/project-preview";
 import { useAutoAdvance } from "./portfolio/use-auto-advance";
 
@@ -71,20 +73,23 @@ function CaseVisual({
 
 interface CaseStudiesProps {
   projects?: Project[];
+  content: HomeSections["featured"];
 }
 
-export function CaseStudies({ projects = [] }: CaseStudiesProps) {
+export function CaseStudies({ projects = [], content }: CaseStudiesProps) {
   const [open, setOpen] = React.useState<{ project: PreviewProject; image: number } | null>(null);
 
-  const CTACase = [
-    {
-      name: "This Could Be You",
-      description: "Book a free Brand Audit today",
-      cta: true,
-      imageUrl: null,
-      project: null,
-    },
-  ];
+  const CTACase = content.ctaCard.show
+    ? [
+        {
+          name: content.ctaCard.title,
+          description: content.ctaCard.description,
+          cta: true,
+          imageUrl: null,
+          project: null,
+        },
+      ]
+    : [];
 
   const projectItems = projects.map((p) => ({
     name: p.title,
@@ -106,13 +111,11 @@ export function CaseStudies({ projects = [] }: CaseStudiesProps) {
     >
       {/* Section Title */}
       <h2 className="text-3xl lg:text-[48px] font-bold leading-tight lg:leading-[53px] text-white max-w-6xl text-center mx-auto">
-        How Muslim Brands Like Yours{" "}
-        <GradientText>Scaled Globally,</GradientText>Without Compromising Faith
+        <HighlightedText value={content.title} />
       </h2>
 
       <p className="text-[14px] font-normal leading-[22px] text-white/70 text-center mx-auto">
-        Real Shariah-compliant creative solutions that doubled engagement,
-        tripled sales, and built lifelong loyalty in months.
+        {content.description}
       </p>
 
       {/* Case Studies */}

@@ -9,8 +9,12 @@ import {
   toInquiry,
   toProject,
   toTestimonial,
+  posts,
+  toPost,
+  toPostSummary,
+  POST_SUMMARY_PROJECTION,
 } from "@/lib/db/models";
-import type { Application, Inquiry, Project, Testimonial } from "@/types";
+import type { Application, Inquiry, Post, PostSummary, Project, Testimonial } from "@/types";
 
 /*
  * Every database READ in the app goes through this file.
@@ -171,4 +175,112 @@ export function getPortfolioProjects(): Promise<Project[]> {
     const all = (await (await projects()).find().sort(arranged).toArray()).map(toProject);
     return [...all.filter((p) => p.isFeatured), ...all.filter((p) => !p.isFeatured)];
   });
+}
+
+// --- Blog --------------------------------------------------------------------
+
+/** What visitors may see: published, and the publish time has arrived. */
+const live = () => ({ status: "published" as const, publishedAt: { $lte: new Date() } });
+const latestFirst = { publishedAt: -1, createdAt: -1 } as const;
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+export function getLatestPosts(limit = 3): Promise<PostSummary[]> {
+  return publicRead("getLatestPosts", async () =>
+    (await (await posts()).find(live(), { projection: POST_SUMMARY_PROJECTION }).sort(latestFirst).limit(limit).toArray()).map(toPostSummary),
+  );
+}
+
+/** Published posts for /blog, optionally narrowed by category and a search query. */
+export async function getBlogFeed({ category, q, limit }: { category?: string; q?: string; limit: number }) {
+  try {
+    const col = await posts();
+    const filter: Record<string, unknown> = live();
+    if (category) filter.category = { $regex: `^${escapeRegex(category)}$`, $options: "i" };
+    if (q) {
+      const rx = { $regex: escapeRegex(q), $options: "i" };
+      filter.$or = [{ title: rx }, { excerpt: rx }, { tags: rx }, { category: rx }];
+    }
+    const [items, total, categories] = await Promise.all([
+      col.find(filter, { projection: POST_SUMMARY_PROJECTION }).sort(latestFirst).limit(limit).toArray(),
+      col.countDocuments(filter),
+      col.aggregate<{ _id: string; count: number }>([
+        { $match: live() },
+        { $group: { _id: "$category", count: { $sum: 1 } } },
+        { $sort: { count: -1, _id: 1 } },
+      ]).toArray(),
+    ]);
+    return {
+      posts: items.map(toPostSummary),
+      total,
+      categories: categories.filter((c) => c._id).map((c) => ({ name: c._id, count: c.count })),
+      allCount: categories.reduce((n, c) => n + c.count, 0),
+    };
+  } catch (error) {
+    console.error("[data] getBlogFeed failed:", error);
+    return { posts: [] as PostSummary[], total: 0, categories: [] as { name: string; count: number }[], allCount: 0 };
+  }
+}
+
+/** A visible post by slug (null if missing, draft or scheduled). */
+export async function getPublishedPost(slug: string): Promise<Post | null> {
+  try {
+    const doc = await (await posts()).findOne({ slug, ...live() });
+    return doc ? toPost(doc) : null;
+  } catch (error) {
+    console.error("[data] getPublishedPost failed:", error);
+    return null;
+  }
+}
+
+/** Any post by slug, for an admin previewing a draft or scheduled post. */
+export async function getPostBySlugForPreview(slug: string): Promise<Post | null> {
+  const doc = await (await posts()).findOne({ slug });
+  return doc ? toPost(doc) : null;
+}
+
+export function getRelatedPosts(post: Pick<Post, "id" | "category">, limit = 3): Promise<PostSummary[]> {
+  return publicRead("getRelatedPosts", async () => {
+    const col = await posts();
+    const exclude = parseId(post.id);
+    const base = { ...live(), ...(exclude ? { _id: { $ne: exclude } } : {}) };
+    const same = await col.find({ ...base, category: post.category }, { projection: POST_SUMMARY_PROJECTION }).sort(latestFirst).limit(limit).toArray();
+    if (same.length >= limit) return same.map(toPostSummary);
+    const ids = same.map((d) => d._id);
+    const more = await col
+      .find({ ...base, _id: { $nin: [...ids, ...(exclude ? [exclude] : [])] } }, { projection: POST_SUMMARY_PROJECTION })
+      .sort(latestFirst)
+      .limit(limit - same.length)
+      .toArray();
+    return [...same, ...more].map(toPostSummary);
+  });
+}
+
+/** Every visible post's slug and date, for the sitemap. */
+export function getPostSitemapEntries(): Promise<{ slug: string; updatedAt: string }[]> {
+  return publicRead("getPostSitemapEntries", async () =>
+    (await (await posts()).find(live(), { projection: { slug: 1, updatedAt: 1 } }).toArray()).map((d) => ({
+      slug: d.slug,
+      updatedAt: d.updatedAt.toISOString(),
+    })),
+  );
+}
+
+// Admin
+export async function getAllPostsAdmin(): Promise<PostSummary[]> {
+  return (await (await posts()).find({}, { projection: POST_SUMMARY_PROJECTION }).sort({ updatedAt: -1 }).toArray()).map(toPostSummary);
+}
+
+export async function getPostById(id: string): Promise<Post | null> {
+  const _id = parseId(id);
+  if (!_id) return null;
+  const doc = await (await posts()).findOne({ _id });
+  return doc ? toPost(doc) : null;
+}
+
+export async function getPostCategories(): Promise<string[]> {
+  try {
+    return ((await (await posts()).distinct("category")) as string[]).filter(Boolean).sort();
+  } catch {
+    return [];
+  }
 }

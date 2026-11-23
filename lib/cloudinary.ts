@@ -8,7 +8,7 @@ import { createHash } from "node:crypto";
  * request limit.
  */
 
-export type UploadKind = "project" | "testimonial" | "resume";
+export type UploadKind = "project" | "testimonial" | "resume" | "blog" | "site";
 
 type UploadTarget = {
   folder: string;
@@ -25,6 +25,9 @@ export const UPLOAD_TARGETS: Record<UploadKind, UploadTarget> = {
     resourceType: "image",
     adminOnly: true,
   },
+  blog: { folder: "xelvo/blog", resourceType: "image", adminOnly: true },
+  /** Website content images: client photos, contact picture, share images. */
+  site: { folder: "xelvo/site", resourceType: "image", adminOnly: true },
   resume: {
     folder: "xelvo/resumes",
     resourceType: "auto",

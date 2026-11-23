@@ -59,3 +59,57 @@ export interface Application {
   createdAt: string;
   updatedAt: string;
 }
+
+export type PostStatus = "draft" | "published";
+
+export interface PostHeading {
+  id: string;
+  text: string;
+  level: number;
+}
+
+/** A blog article. "Scheduled" = published with a publishedAt in the future. */
+export interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  /** True when the summary was generated from the body, not written by the author. */
+  excerptAuto?: boolean;
+  coverImage: string | null;
+  coverAlt: string;
+  category: string;
+  tags: string[];
+  author: string;
+  /** Tiptap JSON document (the editable source). */
+  content: Record<string, unknown>;
+  /** Server-rendered, sanitised HTML built from `content` on save. */
+  contentHtml: string;
+  headings: PostHeading[];
+  readingMinutes: number;
+  status: PostStatus;
+  publishedAt: string | null;
+  seoTitle: string;
+  seoDescription: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** List/card view of a post (no body). */
+export type PostSummary = Pick<
+  Post,
+  | "id"
+  | "title"
+  | "slug"
+  | "excerpt"
+  | "coverImage"
+  | "coverAlt"
+  | "category"
+  | "tags"
+  | "author"
+  | "readingMinutes"
+  | "status"
+  | "publishedAt"
+  | "createdAt"
+  | "updatedAt"
+>;

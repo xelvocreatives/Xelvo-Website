@@ -1,7 +1,7 @@
 import "server-only";
 import { ObjectId, type Collection } from "mongodb";
 import { getDb } from "./mongo";
-import type { Application, Inquiry, Project, Testimonial } from "@/types";
+import type { Application, Inquiry, Post, PostSummary, Project, Testimonial } from "@/types";
 
 /*
  * Stored document shapes. Dates are real Date objects in MongoDB; the mappers
@@ -38,7 +38,12 @@ export type ApplicationDoc = Omit<
   Timestamps &
   Legacy & { _id: ObjectId };
 
+// publishedAt is a Date in storage (null for never-published drafts).
+export type PostDoc = Omit<Post, "id" | "createdAt" | "updatedAt" | "publishedAt"> &
+  Timestamps & { _id: ObjectId; publishedAt: Date | null };
+
 export const COLLECTIONS = {
+  posts: "posts",
   projects: "projects",
   testimonials: "testimonials",
   inquiries: "inquiries",
@@ -47,6 +52,9 @@ export const COLLECTIONS = {
 
 export async function projects(): Promise<Collection<ProjectDoc>> {
   return (await getDb()).collection<ProjectDoc>(COLLECTIONS.projects);
+}
+export async function posts(): Promise<Collection<PostDoc>> {
+  return (await getDb()).collection<PostDoc>(COLLECTIONS.posts);
 }
 export async function testimonials(): Promise<Collection<TestimonialDoc>> {
   return (await getDb()).collection<TestimonialDoc>(COLLECTIONS.testimonials);
@@ -85,3 +93,34 @@ export const toTestimonial = (doc: TestimonialDoc): Testimonial =>
 export const toInquiry = (doc: InquiryDoc): Inquiry => serialize(doc);
 export const toApplication = (doc: ApplicationDoc): Application =>
   serialize(doc);
+
+export const toPost = (doc: PostDoc): Post => ({
+  ...serialize(doc),
+  publishedAt: doc.publishedAt ? doc.publishedAt.toISOString() : null,
+});
+
+/** Fields needed for lists and cards (skips the article body). */
+export const POST_SUMMARY_PROJECTION = {
+  content: 0,
+  contentHtml: 0,
+  headings: 0,
+  seoTitle: 0,
+  seoDescription: 0,
+} as const;
+
+export const toPostSummary = (doc: Omit<PostDoc, "content" | "contentHtml" | "headings" | "seoTitle" | "seoDescription">): PostSummary => ({
+  id: doc._id.toHexString(),
+  title: doc.title,
+  slug: doc.slug,
+  excerpt: doc.excerpt,
+  coverImage: doc.coverImage,
+  coverAlt: doc.coverAlt,
+  category: doc.category,
+  tags: doc.tags ?? [],
+  author: doc.author,
+  readingMinutes: doc.readingMinutes,
+  status: doc.status,
+  publishedAt: doc.publishedAt ? doc.publishedAt.toISOString() : null,
+  createdAt: doc.createdAt.toISOString(),
+  updatedAt: doc.updatedAt.toISOString(),
+});

@@ -225,7 +225,7 @@ export function ProjectEditor({
               </label>
               <p className="mt-1 text-[13px] leading-relaxed text-xa-muted">
                 {values.isFeatured
-                  ? "Appears on your home page (the first 4 show) and on your Portfolio page."
+                  ? "Appears on your Home page (choose how many in Website → Home page → Featured projects) and on your Portfolio page."
                   : "Appears on your Portfolio page only."}
               </p>
             </div>

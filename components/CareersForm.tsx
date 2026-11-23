@@ -19,6 +19,7 @@ import { ContactInput } from "./ui/contact-input";
 import { cn } from "@/lib/utils";
 import { submitApplication } from "@/app/actions/career";
 import { uploadToCloudinary } from "@/lib/upload-client";
+import type { CareersContent } from "@/lib/site/schema";
 
 const initialState = {
   success: false,
@@ -26,7 +27,7 @@ const initialState = {
   message: null as string | null,
 };
 
-export function CareersForm() {
+export function CareersForm({ content }: { content: CareersContent["form"] }) {
   const [location, setLocation] = useState("remote");
   const [fileName, setFileName] = useState("");
   const [state, formAction, isSubmitting] = useActionState(
@@ -77,13 +78,9 @@ export function CareersForm() {
             <CheckCircle2 size={40} />
           </div>
           <h2 className="text-3xl font-bold text-white">
-            Application Received!
+            {content.successTitle}
           </h2>
-          <p className="text-gray-400 text-lg">
-            Thanks for your interest in joining Xelvo Creatives. We&apos;ve
-            received your application and our team will review it shortly. If
-            it&apos;s a match, we&apos;ll be in touch!
-          </p>
+          <p className="text-gray-400 text-lg">{content.successMessage}</p>
           <button
             onClick={() => window.location.reload()}
             className="text-[#FF6600] font-bold hover:underline"
@@ -108,11 +105,9 @@ export function CareersForm() {
         <div className="relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-[32px] md:text-[48px] font-bold text-white mb-4">
-              Apply Now
+              {content.title}
             </h2>
-            <p className="text-[#A0A0A0] text-lg">
-              Tell us about yourself and why you&apos;d like to join our team
-            </p>
+            {content.description && <p className="text-[#A0A0A0] text-lg">{content.description}</p>}
           </div>
 
           <form onSubmit={handleSubmit} className="max-w-[800px] mx-auto space-y-8">
@@ -368,11 +363,11 @@ export function CareersForm() {
             )}
 
             {/* Privacy Notice */}
-            <p className="text-[#6B7280] text-sm leading-relaxed border-l-2 border-[#FF6600]/30 pl-4 py-1">
-              We respect your privacy. Your information will be used solely for
-              recruitment purposes and will not be shared with third parties. We
-              handle all applications with care and confidentiality.
-            </p>
+            {content.privacy && (
+              <p className="text-[#6B7280] text-sm leading-relaxed border-l-2 border-[#FF6600]/30 pl-4 py-1">
+                {content.privacy}
+              </p>
+            )}
 
             {/* Submit Button */}
             <button
@@ -384,7 +379,7 @@ export function CareersForm() {
                 ? "Uploading Resume..."
                 : isPending
                   ? "Submitting Application..."
-                  : "Submit Application"}
+                  : content.submitLabel}
             </button>
           </form>
         </div>

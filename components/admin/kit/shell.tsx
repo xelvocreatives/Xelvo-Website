@@ -7,10 +7,12 @@ import { usePathname } from "next/navigation";
 import {
   Briefcase,
   ExternalLink,
+  Globe,
   House,
   Images,
   LogOut,
   MessageSquareText,
+  Newspaper,
   Quote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -67,6 +69,8 @@ export function AdminShell({
     },
     { href: "/admin/projects", label: "Projects", short: "Projects", icon: Images },
     { href: "/admin/testimonials", label: "Testimonials", short: "Reviews", icon: Quote },
+    { href: "/admin/blog", label: "Blog", short: "Blog", icon: Newspaper },
+    { href: "/admin/website", label: "Website", short: "Website", icon: Globe },
   ];
 
   return (
@@ -172,7 +176,7 @@ export function AdminShell({
       {/* Mobile tab bar */}
       <nav
         aria-label="Admin"
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-xa-line bg-[#0e0e0e]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-7 border-t border-xa-line bg-[#0e0e0e]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
       >
         {nav.map((item) => {
           const active = isActive(pathname, item.href);

@@ -417,6 +417,18 @@
         "displayName": "Case Text Black",
         "canonical": "#000000",
         "scope": "public"
+      },
+      "public-article-ink": {
+        "role": "neutral",
+        "displayName": "Article Ink",
+        "canonical": "rgb(255 255 255 / 0.86)",
+        "scope": "public"
+      },
+      "public-home-subtext": {
+        "role": "neutral",
+        "displayName": "Home Subtext Grey",
+        "canonical": "#b9b9b9",
+        "scope": "public"
       }
     },
     "typographyMeta": {
@@ -493,6 +505,66 @@
       "public-caption": {
         "displayName": "Caption",
         "purpose": "Category under the card title; preview keyboard tip.",
+        "scope": "public"
+      },
+      "editor-title": {
+        "displayName": "Editor title",
+        "purpose": "Article title field in the article editor; 38px from sm.",
+        "scope": "admin"
+      },
+      "public-section-home": {
+        "displayName": "Home section",
+        "purpose": "Testimonials, FAQ and Latest from the blog section titles with a GradientText word; 30px below lg.",
+        "scope": "public"
+      },
+      "public-article-title": {
+        "displayName": "Article title",
+        "purpose": "Article h1; 32px below sm.",
+        "scope": "public"
+      },
+      "public-lead": {
+        "displayName": "Lead",
+        "purpose": "Newest article title on the blog feed (sm and up).",
+        "scope": "public"
+      },
+      "public-lead-sm": {
+        "displayName": "Lead small",
+        "purpose": "Feed lead title below sm; Home blog lead title on lg (24px below lg); article h2.",
+        "scope": "public"
+      },
+      "public-entry-title": {
+        "displayName": "Entry title",
+        "purpose": "Later blog feed entries (sm and up).",
+        "scope": "public"
+      },
+      "public-entry-title-sm": {
+        "displayName": "Entry title small",
+        "purpose": "Later blog feed entries below sm; article h3.",
+        "scope": "public"
+      },
+      "public-standfirst": {
+        "displayName": "Standfirst",
+        "purpose": "Article standfirst from sm (18px below) and article pull quotes (italic).",
+        "scope": "public"
+      },
+      "public-article-body": {
+        "displayName": "Article body",
+        "purpose": "The 68ch reading column, shared by the article page and the admin editor canvas.",
+        "scope": "public"
+      },
+      "public-lead-excerpt": {
+        "displayName": "Lead excerpt",
+        "purpose": "Blog feed lead excerpt at white 70%, capped at 68ch.",
+        "scope": "public"
+      },
+      "public-label-lg": {
+        "displayName": "Large label",
+        "purpose": "Full-size public CTAs (Hero, Services, article closing CTA).",
+        "scope": "public"
+      },
+      "public-dateline": {
+        "displayName": "Dateline",
+        "purpose": "Journal spine datelines (white 55%, tabular) and article tag chips.",
         "scope": "public"
       }
     },
@@ -624,6 +696,18 @@
         "value": "300ms colour; wall fade-in 500ms on filter change",
         "purpose": "Filter chips and wall re-render.",
         "scope": "public"
+      },
+      {
+        "name": "public-cover-zoom",
+        "value": "transform 700ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Blog cover hover zoom: 1.02 on leads, 1.03 on entries and Read next.",
+        "scope": "public"
+      },
+      {
+        "name": "public-reading-progress",
+        "value": "transform: scaleX(progress), origin left, rAF on scroll",
+        "purpose": "Article reading-progress bar fill; follows the Header's bottom edge as it shrinks.",
+        "scope": "public"
       }
     ],
     "breakpoints": [
@@ -685,7 +769,8 @@
           "body",
           "body-sm",
           "label",
-          "caption"
+          "caption",
+          "editor-title"
         ],
         "rounded": [
           "sm",
@@ -702,10 +787,13 @@
           "xl",
           "section",
           "sidebar",
-          "content-max"
+          "content-max",
+          "editor-bar",
+          "editor-aside"
         ],
         "exceptions": [
-          "Live-preview frames in components/admin/project-editor.tsx and components/admin/testimonial-editor.tsx render public components; judge their contents against the public scope (The Preview Exception Rule)."
+          "Live-preview frames in components/admin/project-editor.tsx and components/admin/testimonial-editor.tsx render public components; judge their contents against the public scope (The Preview Exception Rule).",
+          "The article editor canvas in components/admin/blog/rich-editor.tsx renders the public article-body rules on #111111; judge its contents against the public scope (The Preview Exception Rule)."
         ]
       },
       {
@@ -715,6 +803,7 @@
           "app/page.tsx",
           "app/portfolio/**",
           "app/career/**",
+          "app/blog/**",
           "app/error.tsx",
           "app/layout.tsx",
           "components/**"
@@ -743,7 +832,9 @@
           "public-on-brand",
           "public-link",
           "public-case-card",
-          "public-case-text"
+          "public-case-text",
+          "public-article-ink",
+          "public-home-subtext"
         ],
         "typography": [
           "public-display",
@@ -753,7 +844,18 @@
           "public-body",
           "public-label",
           "public-meta",
-          "public-caption"
+          "public-caption",
+          "public-section-home",
+          "public-article-title",
+          "public-lead",
+          "public-lead-sm",
+          "public-entry-title",
+          "public-entry-title-sm",
+          "public-standfirst",
+          "public-article-body",
+          "public-lead-excerpt",
+          "public-label-lg",
+          "public-dateline"
         ],
         "rounded": [
           "public-thumb",
@@ -770,7 +872,13 @@
           "public-stage-to-wall",
           "public-hit-min",
           "public-aside",
-          "public-content-max"
+          "public-content-max",
+          "public-feed-max",
+          "public-spine",
+          "public-article-column",
+          "public-article-wide",
+          "public-measure",
+          "public-toc"
         ]
       }
     ]
@@ -844,7 +952,7 @@
       "kind": "card",
       "refersTo": "panel-card",
       "description": "Person card in the Home reply strip: neutral avatar, orange new dot, one-tap WhatsApp and email.",
-      "html": "<div class=\"ds-reply\"><div class=\"ds-reply-top\"><span class=\"ds-avatar\">AK</span><div><p class=\"ds-reply-name\">Aisha Khan <i></i></p><p class=\"ds-reply-sub\">Social media design · Barakah Foods</p></div></div><div class=\"ds-reply-foot\"><span>Lead · 3 hours ago</span><span class=\"ds-reply-acts\"><button class=\"ds-wa\" aria-label=\"WhatsApp\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M7.9 20A9 9 0 1 0 4 16.1L2 22z\"/></svg></button><button class=\"ds-mail\" aria-label=\"Email\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\"/><path d=\"m22 7-10 6L2 7\"/></svg></button></span></div></div>",
+      "html": "<div class=\"ds-reply\"><div class=\"ds-reply-top\"><span class=\"ds-avatar\">AK</span><div><p class=\"ds-reply-name\">Aisha Khan <i></i></p><p class=\"ds-reply-sub\">Social media design \u00b7 Barakah Foods</p></div></div><div class=\"ds-reply-foot\"><span>Lead \u00b7 3 hours ago</span><span class=\"ds-reply-acts\"><button class=\"ds-wa\" aria-label=\"WhatsApp\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"M7.9 20A9 9 0 1 0 4 16.1L2 22z\"/></svg></button><button class=\"ds-mail\" aria-label=\"Email\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\"/><path d=\"m22 7-10 6L2 7\"/></svg></button></span></div></div>",
       "css": ".ds-reply { width: 340px; display: flex; flex-direction: column; gap: 16px; padding: 16px; border: 1px solid rgb(255 255 255 / 0.08); border-radius: 16px; background: #141414; font-family: 'Plus Jakarta Sans', sans-serif; color: #f4f1ec; transition: border-color 200ms; } .ds-reply-top { display: flex; gap: 12px; align-items: flex-start; } .ds-avatar { width: 44px; height: 44px; border-radius: 9999px; background: #242424; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.1); display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: rgb(244 241 236 / 0.85); flex-shrink: 0; } .ds-reply-name { margin: 0; font-weight: 700; display: flex; align-items: center; gap: 8px; } .ds-reply-name i { width: 8px; height: 8px; border-radius: 9999px; background: #ff6600; } .ds-reply-sub { margin: 0; font-size: 14px; color: #a19c95; } .ds-reply-foot { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 500; color: #a19c95; } .ds-reply-acts { display: flex; gap: 6px; } .ds-reply-acts button { width: 36px; height: 36px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; } .ds-wa { background: rgb(37 211 102 / 0.12); color: #25d366; border: 1px solid rgb(37 211 102 / 0.25); } .ds-mail { background: #1c1c1c; color: #f4f1ec; border: 1px solid rgb(255 255 255 / 0.14); } .ds-reply-acts button:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; }",
       "scope": "admin"
     },
@@ -901,11 +1009,47 @@
       "description": "The viewer's story column: title, category and counter, description, then the Start a project CTA.",
       "html": "<aside class=\"ds-story\"><h2>The Horizon Travels</h2><div class=\"ds-story-meta\"><p>Company profile &amp; branding</p><p>2 / 5</p></div><p class=\"ds-story-body\">A full identity and company profile for a travel agency built on trust.</p><div class=\"ds-story-foot\"><p>Want work like this for your brand?</p><a href=\"#\">Start a project<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 17 17 7\"/><path d=\"M7 7h10v10\"/></svg></a></div></aside>",
       "css": ".ds-story { width: 380px; padding: 40px 32px; background: #0d0d0d; border-left: 1px solid rgb(255 255 255 / 0.08); color: #fff; font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; } .ds-story h2 { margin: 0; font-size: 28px; font-weight: 700; line-height: 1.25; } .ds-story-meta { display: flex; justify-content: space-between; gap: 16px; margin-top: 8px; font-size: 14px; } .ds-story-meta p { margin: 0; } .ds-story-meta p:first-child { font-weight: 500; color: rgb(255 255 255 / 0.7); } .ds-story-meta p:last-child { color: rgb(255 255 255 / 0.55); font-variant-numeric: tabular-nums; } .ds-story-body { margin: 16px 0 0; font-size: 15px; line-height: 1.625; color: rgb(255 255 255 / 0.75); } .ds-story-foot { margin-top: 32px; padding-top: 24px; border-top: 1px solid rgb(255 255 255 / 0.08); } .ds-story-foot p { margin: 0; font-size: 14px; color: rgb(255 255 255 / 0.6); } .ds-story-foot a { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 12px 20px; border-radius: 12px; background: linear-gradient(135deg, #FF6600, #FF7700); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; transition: transform 200ms; } .ds-story-foot a:hover { transform: scale(1.02); } .ds-story-foot a:active { transform: scale(0.98); } .ds-story-foot a:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; }"
+    },
+    {
+      "name": "Article Status Pills",
+      "kind": "chip",
+      "refersTo": "status-pill",
+      "scope": "admin",
+      "description": "Draft (neutral), Scheduled (blue) and Published (green) in the standard tinted pill.",
+      "html": "<span class=\"ds-apill ds-apill-draft\"><i></i>Draft</span> <span class=\"ds-apill ds-apill-sched\"><i></i>Scheduled</span> <span class=\"ds-apill ds-apill-pub\"><i></i>Published</span>",
+      "css": ".ds-apill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600; line-height: 1; } .ds-apill i { width: 6px; height: 6px; border-radius: 9999px; background: currentColor; } .ds-apill-draft { background: rgb(255 255 255 / 0.08); color: #a19c95; } .ds-apill-sched { background: rgb(124 180 255 / 0.12); color: #7cb4ff; } .ds-apill-pub { background: rgb(95 214 139 / 0.12); color: #5fd68b; }"
+    },
+    {
+      "name": "Article Editor Toolbar",
+      "kind": "custom",
+      "refersTo": "editor-toolbar",
+      "scope": "admin",
+      "description": "Wrapping formatting strip on Panel Charcoal; 36px 8px-cornered controls, white 12% when active; sticky under the 64px top bar on lg only.",
+      "html": "<div class=\"ds-tb\" role=\"toolbar\"><button aria-label=\"Bold\" aria-pressed=\"true\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8\"/></svg></button><button aria-label=\"Italic\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"19\" x2=\"10\" y1=\"4\" y2=\"4\"/><line x1=\"14\" x2=\"5\" y1=\"20\" y2=\"20\"/><line x1=\"15\" x2=\"9\" y1=\"4\" y2=\"20\"/></svg></button><span class=\"ds-tb-sep\"></span><button aria-label=\"Bulleted list\"><svg width=\"17\" height=\"17\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12h.01M3 18h.01M3 6h.01M8 12h13M8 18h13M8 6h13\"/></svg></button></div>",
+      "css": ".ds-tb { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: 8px; background: #141414; border-bottom: 1px solid rgb(255 255 255 / 0.08); } .ds-tb button { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: 0; border-radius: 8px; background: transparent; color: #a19c95; cursor: pointer; transition: background 150ms, color 150ms; } .ds-tb button:hover { background: rgb(255 255 255 / 0.08); color: #f4f1ec; } .ds-tb button[aria-pressed=\"true\"] { background: rgb(255 255 255 / 0.12); color: #f4f1ec; } .ds-tb button:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; } .ds-tb-sep { width: 1px; height: 20px; margin: 0 4px; background: rgb(255 255 255 / 0.14); }"
+    },
+    {
+      "name": "Journal Feed Entry (public)",
+      "kind": "card",
+      "refersTo": "public-feed-entry",
+      "scope": "public",
+      "description": "Blog feed entry: 16:10 cover in a 16px ringed frame beside the title, excerpt and meta line below; hairline above; the whole entry is one link.",
+      "html": "<article class=\"ds-entry\"><div class=\"ds-entry-cover\"></div><div><h2><a href=\"#\">Why halal branding is more than a logo</a></h2><p class=\"ds-entry-ex\">Values show up in every touchpoint, from packaging to the way you answer a message.</p><p class=\"ds-entry-meta\">Branding \u00b7 6 min read</p></div></article>",
+      "css": ".ds-entry { position: relative; display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr); gap: 32px; padding-top: 40px; border-top: 1px solid rgb(255 255 255 / 0.08); font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; } .ds-entry-cover { aspect-ratio: 16 / 10; border-radius: 16px; background: linear-gradient(135deg, #2a2a2a, #0b0b0b); box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08); transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-entry:hover .ds-entry-cover { transform: scale(1.03); } .ds-entry h2 { margin: 4px 0 0; font-size: 24px; line-height: 1.375; font-weight: 700; letter-spacing: -0.01em; color: #fff; } .ds-entry a { color: inherit; text-decoration: none; } .ds-entry a::after { content: ''; position: absolute; inset: 0; border-radius: 16px; } .ds-entry a:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; } .ds-entry-ex { margin: 12px 0 0; font-size: 15px; line-height: 1.625; color: rgb(255 255 255 / 0.65); } .ds-entry-meta { margin: 16px 0 0; font-size: 14px; color: rgb(255 255 255 / 0.6); }"
+    },
+    {
+      "name": "Article Body and Contents Rail (public)",
+      "kind": "custom",
+      "refersTo": "public-article-body",
+      "scope": "public",
+      "description": "The 18px / 1.75 reading column at 68ch beside the contents rail: neutral spine hairline with a 2px brand-gradient marker on the active section.",
+      "html": "<div class=\"ds-art\"><div class=\"ds-art-body\"><h2>Start with what you believe</h2><p>A brand built on values earns trust before it earns attention. <a href=\"#\">Read our approach</a>, then list what you will <strong>never</strong> compromise on.</p><ul><li>Name the promise</li><li>Show the proof</li></ul></div><nav class=\"ds-toc\"><p>On this page</p><ol><li><a href=\"#\" aria-current=\"location\">Start with what you believe</a></li><li><a href=\"#\">Design for the long run</a></li></ol></nav></div>",
+      "css": ".ds-art { display: grid; grid-template-columns: minmax(0, 1fr) 220px; gap: 48px; font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif; } .ds-art-body { max-width: 68ch; color: rgb(255 255 255 / 0.86); font-size: 18px; line-height: 1.75; } .ds-art-body > * + * { margin-top: 1.25em; } .ds-art-body h2 { margin: 0; color: #fff; font-size: 28px; font-weight: 700; line-height: 1.25; letter-spacing: -0.015em; } .ds-art-body h2 + * { margin-top: 0.7em; } .ds-art-body a { color: #ff8a3d; text-decoration: underline; text-decoration-color: rgb(255 138 61 / 0.45); text-underline-offset: 3px; transition: text-decoration-color 0.2s; } .ds-art-body a:hover { text-decoration-color: currentColor; } .ds-art-body strong { color: #fff; } .ds-art-body ul { padding-left: 1.4em; } .ds-art-body li::marker { color: #ff8a3d; } .ds-toc { font-size: 14px; } .ds-toc p { margin: 0 0 12px; font-weight: 600; color: #fff; } .ds-toc ol { position: relative; margin: 0; padding: 0; list-style: none; } .ds-toc ol::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 1px; background: linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.05)); } .ds-toc a { position: relative; display: block; padding: 6px 0 6px 16px; line-height: 1.375; color: rgb(255 255 255 / 0.55); text-decoration: none; transition: color 150ms; } .ds-toc a:hover { color: rgb(255 255 255 / 0.85); } .ds-toc a::before { content: ''; position: absolute; top: 0; bottom: 0; left: -0.5px; width: 2px; border-radius: 9999px; background: linear-gradient(to bottom, #E69700, #FF6600); opacity: 0; transition: opacity 150ms; } .ds-toc a[aria-current] { color: #fff; font-weight: 500; } .ds-toc a[aria-current]::before { opacity: 1; } .ds-toc a:focus-visible { outline: 2px solid #ff6600; outline-offset: 2px; }"
     }
   ],
   "narrative": {
     "northStar": "The Studio Wall (admin) / The Gallery That Keeps Moving (public)",
-    "overview": "Admin world.\n\nThe admin looks like the work. The owner is a graphic designer, so the screen leads with large project images and client faces, and everything waiting for a reply is pinned above them. It turns down the usual back-office layout of KPI tiles over data tables. Lists exist (leads, job applications), but they are calm single panels with status pills. The full message and its actions sit on a detail page.\n\nThe material is the Xelvo brand at night: a near-black ground, slightly lifted panels separated by 1px white hairlines, warm off-white ink and one hot orange used sparingly. Depth comes from tone steps and hairlines, never from glow. Type is Plus Jakarta Sans in sentence case at bold weights with tight tracking, and every label uses plain English the owner would say out loud.\n\nThe signature is the live website preview. In the project and testimonial editors, a copy of the public site's card updates as the owner types or picks an image, so they see the website result before saving.\n\nPublic world.\n\nThe public site is a near-black gallery where the work leads. On the Portfolio page, a stage plays the studio's chosen projects one at a time, each shown whole, and below it a wall shows every project at its true shape. Multi-image projects page through their own images on staggered clocks, and any project opens into a quiet, opaque viewer with its story.\n\nThe material is charcoal (#111111) with a deeper black (#0b0b0b) behind images, white ink with translucent-white secondary text, full-colour images in 16px corners with a faint white hairline, and the brand's amber-to-orange gradient kept to a few marked places. Capsules and controls are solid dark fills, never glass. Plus Jakarta Sans carries everything, bold for headings.",
+    "overview": "Admin world.\n\nThe admin looks like the work. The owner is a graphic designer, so the screen leads with large project images and client faces, and everything waiting for a reply is pinned above them. It turns down the usual back-office layout of KPI tiles over data tables. Lists exist (leads, job applications), but they are calm single panels with status pills. The full message and its actions sit on a detail page.\n\nThe material is the Xelvo brand at night: a near-black ground, slightly lifted panels separated by 1px white hairlines, warm off-white ink and one hot orange used sparingly. Depth comes from tone steps and hairlines, never from glow. Type is Plus Jakarta Sans in sentence case at bold weights with tight tracking, and every label uses plain English the owner would say out loud.\n\nThe signature is the live website preview. In the project and testimonial editors, a copy of the public site's card updates as the owner types or picks an image, so they see the website result before saving.\n\nThe article editor follows the same idea. The owner writes on the public article's own dark page and reading column, so what they type is what readers will see.\n\nPublic world.\n\nThe public site is a near-black gallery where the work leads. On the Portfolio page, a stage plays the studio's chosen projects one at a time, each shown whole, and below it a wall shows every project at its true shape. Multi-image projects page through their own images on staggered clocks, and any project opens into a quiet, opaque viewer with its story.\n\nThe material is charcoal (#111111) with a deeper black (#0b0b0b) behind images, white ink with translucent-white secondary text, full-colour images in 16px corners with a faint white hairline, and the brand's amber-to-orange gradient kept to a few marked places. Capsules and controls are solid dark fills, never glass. Plus Jakarta Sans carries everything, bold for headings.\n\nThe blog reads like the studio's journal. The newest article opens large, and the rest follow as calm entries in one column. A thin hairline, the journal spine, runs down the left of the feed with each entry's date on it. On the article page the same spine becomes the gradient reading-progress bar and the contents rail's active marker.",
     "keyCharacteristics": [
       "Image-first: projects show as 14px-cornered photo tiles, not table rows.",
       "One accent with a strict job list (primary action, needs-reply, logo).",
@@ -913,23 +1057,25 @@
       "Sentence-case Plus Jakarta Sans, bold, tightly tracked headings, tabular numerals.",
       "Plain-English status vocabulary with one hue per meaning.",
       "Desktop sidebar, mobile top bar plus bottom tab bar.",
+      "A full-page article editor that writes on the public reading column.",
       "The work leads: images at their own shape, full colour, nothing laid over them except a legibility scrim.",
-      "The brand gradient appears on the heading word, the active filter chip and the gradient CTA, nowhere decorative.",
+      "The brand gradient appears on the heading word, the active filter chip, the reading-progress bar and the contents marker, and the CTA gradient on CTAs; nowhere decorative.",
       "Pill dots show position: the active dot stretches and turns orange.",
       "Solid dark capsules and controls, no backdrop blur.",
       "Category is quiet metadata under the title, never an eyebrow above it.",
-      "Motion runs only while on screen, pauses on hover, and stops under reduced motion."
+      "Motion runs only while on screen, pauses on hover, and stops under reduced motion.",
+      "Articles read at 18px on a 68ch measure, with the journal spine tying the feed and the article together."
     ],
     "rules": [
       {
         "name": "The Orange Reserve Rule",
-        "body": "Xelvo Orange means \"do this\" or \"someone is waiting\". It goes on primary actions, needs-reply state (badges, new dots, the New pill) and the logo, and on nothing else. Avatars are neutral charcoal. If orange marks something that is neither an action nor a waiting person, it is wrong. The keyboard focus ring is the one global exception (2px orange outline, 2px offset), because the build sets it in the scope stylesheet for accessibility.",
+        "body": "Xelvo Orange means \"do this\" or \"someone is waiting\". It goes on primary actions, needs-reply state (badges, new dots, the New pill) and the logo, and on nothing else. Avatars are neutral charcoal. If orange marks something that is neither an action nor a waiting person, it is wrong. The keyboard focus ring is the one global exception (2px orange outline, 2px offset), because the build sets it in the scope stylesheet for accessibility. The article editor's caret, gap cursor and selected-block outline (2px, 3px offset) are the same focus device.",
         "section": "colors",
         "scope": "admin"
       },
       {
         "name": "The Preview Exception Rule",
-        "body": "Inside a live-preview frame, the public site's styling wins: the real public PortfolioCard on its #111111 ground in the project editor, and the gradient avatar on the #121212 review card in the testimonial editor. A preview has to be the public card. That styling never leaves the frame.",
+        "body": "Inside a live-preview frame, the public site's styling wins: the real public PortfolioCard on its #111111 ground in the project editor, the gradient avatar on the #121212 review card in the testimonial editor, and the article editor's writing canvas (Charcoal Ground with the public article body rules, including Link Orange links and list markers). A preview has to be the public card. That styling never leaves the frame.",
         "section": "colors",
         "scope": "admin"
       },
@@ -947,7 +1093,7 @@
       },
       {
         "name": "The Plain Words Rule",
-        "body": "Statuses read New, Contacted, Interested, Won, Closed (leads) and New, Reviewing, Contacted, Hired, Not selected (applications). Navigation reads Home, Leads, Job applications, Projects, Testimonials. On mobile these shorten to Jobs and Reviews. No themed jargon.",
+        "body": "Statuses read New, Contacted, Interested, Won, Closed (leads), New, Reviewing, Contacted, Hired, Not selected (applications) and Draft, Scheduled, Published (articles). Navigation reads Home, Leads, Job applications, Projects, Testimonials, Blog. On mobile these shorten to Jobs and Reviews. No themed jargon.",
         "section": "typography",
         "scope": "admin"
       },
@@ -971,7 +1117,7 @@
       },
       {
         "name": "The Gradient Places Rule",
-        "body": "The brand gradient has exactly two jobs: the GradientText heading word and the active filter chip. The CTA gradient has one: public call-to-action buttons. Neither is a background, a border or a decoration.",
+        "body": "The brand gradient has exactly four jobs: the GradientText heading word, the active filter chip (and the blog's active category tab), the article's reading-progress bar and the contents rail's active marker. The CTA gradient has one: public call-to-action buttons. Neither is a background, a border or a decoration. The journal spine's hairline is a neutral white fade (22% to 5%), not the brand gradient.",
         "section": "colors",
         "scope": "public"
       },
@@ -983,9 +1129,15 @@
       },
       {
         "name": "The Metadata Below Rule",
-        "body": "A project's category always sits under its title as muted metadata (white at 70%, medium weight). It never sits above the title as a kicker or eyebrow.",
+        "body": "A project's category always sits under its title as muted metadata (white at 70%, medium weight). It never sits above the title as a kicker or eyebrow. Blog entries follow the same rule: category, reading time and date sit in one meta line under the excerpt.",
         "section": "typography",
         "scope": "public"
+      },
+      {
+        "name": "The Reading Column Rule",
+        "section": "typography",
+        "scope": "public",
+        "body": "Article text is 18px with 1.75 leading on a 68ch measure, set by one shared article-body stylesheet. The public article page and the admin editor canvas both use it, so the owner writes exactly what readers see. Never restyle article text in only one of the two."
       },
       {
         "name": "The True Shape Rule",
@@ -1004,6 +1156,12 @@
         "body": "`/portfolio` is the portfolio. `/projects` permanently redirects (308) to it.",
         "section": "layout",
         "scope": "public"
+      },
+      {
+        "name": "The Journal Spine Rule",
+        "section": "layout",
+        "scope": "public",
+        "body": "The spine is one system used in exactly three places: the feed's 1px hairline (white 22% fading to 5%) with a 13px dateline and a 9px hollow node (Charcoal Ground with a white-30% ring) level with each cover's top, on lg only; the article's 3px brand-gradient reading-progress bar, pinned to the bottom edge of the fixed Header; and the contents rail, which repeats the same hairline with a 2px brand-gradient marker on the section being read. Do not add it anywhere else."
       },
       {
         "name": "The Legibility Scrim Rule",
@@ -1025,6 +1183,7 @@
       "Do separate surfaces with tone steps and 1px white hairlines (8%, or 14% for controls).",
       "Do confirm every delete and every unsaved-changes discard in an in-app dialog, and toast every save.",
       "Do mirror the public card exactly inside a live preview, including its gradients, by rendering the real public component.",
+      "Do show article status as Draft, Scheduled or Published pills, and write articles on the shared article-body canvas.",
       "Do set public pages on Charcoal Ground (#111111) with Deep Black (#0b0b0b) behind images.",
       "Do frame images in 16px corners with a 1px white-8% ring, and show the wall at each cover's true shape.",
       "Do show the stage and preview images contained, never cropped.",
@@ -1033,7 +1192,9 @@
       "Do put the category under the title as muted metadata.",
       "Do run auto-advance only while on screen (35% visible), pause it on hover and in hidden tabs, stop it under reduced motion, and restart the full interval after a manual pick.",
       "Do build filter chips from the admin's categories exactly as typed.",
-      "Do keep the Home case-study cards in their original white design; only their image area plays and opens the preview."
+      "Do keep the Home case-study cards in their original white design; only their image area plays and opens the preview.",
+      "Do set article text at 18px with 1.75 leading on a 68ch measure, from the shared article-body rules.",
+      "Do keep the journal spine to the feed's dateline hairline, the reading-progress bar and the contents marker."
     ],
     "donts": [
       "Don't put a coloured glow or halo on buttons or cards; primary buttons are flat.",
@@ -1047,19 +1208,21 @@
       "Don't put the category above a title as an eyebrow.",
       "Don't crop the stage or preview image, or force the wall into equal cropped cells.",
       "Don't replace the Home case-study cards with portfolio cards.",
-      "Don't carry the public CTA glow or brand gradient into the admin's own chrome."
+      "Don't carry the public CTA glow or brand gradient into the admin's own chrome.",
+      "Don't paint the spine hairline itself with the brand gradient; it is a neutral white fade."
     ],
     "scoped": {
       "admin": {
         "northStar": "The Studio Wall",
-        "overview": "The admin looks like the work. The owner is a graphic designer, so the screen leads with large project images and client faces, and everything waiting for a reply is pinned above them. It turns down the usual back-office layout of KPI tiles over data tables. Lists exist (leads, job applications), but they are calm single panels with status pills. The full message and its actions sit on a detail page.\n\nThe material is the Xelvo brand at night: a near-black ground, slightly lifted panels separated by 1px white hairlines, warm off-white ink and one hot orange used sparingly. Depth comes from tone steps and hairlines, never from glow. Type is Plus Jakarta Sans in sentence case at bold weights with tight tracking, and every label uses plain English the owner would say out loud.\n\nThe signature is the live website preview. In the project and testimonial editors, a copy of the public site's card updates as the owner types or picks an image, so they see the website result before saving.",
+        "overview": "The admin looks like the work. The owner is a graphic designer, so the screen leads with large project images and client faces, and everything waiting for a reply is pinned above them. It turns down the usual back-office layout of KPI tiles over data tables. Lists exist (leads, job applications), but they are calm single panels with status pills. The full message and its actions sit on a detail page.\n\nThe material is the Xelvo brand at night: a near-black ground, slightly lifted panels separated by 1px white hairlines, warm off-white ink and one hot orange used sparingly. Depth comes from tone steps and hairlines, never from glow. Type is Plus Jakarta Sans in sentence case at bold weights with tight tracking, and every label uses plain English the owner would say out loud.\n\nThe signature is the live website preview. In the project and testimonial editors, a copy of the public site's card updates as the owner types or picks an image, so they see the website result before saving.\n\nThe article editor follows the same idea. The owner writes on the public article's own dark page and reading column, so what they type is what readers will see.",
         "keyCharacteristics": [
           "Image-first: projects show as 14px-cornered photo tiles, not table rows.",
           "One accent with a strict job list (primary action, needs-reply, logo).",
           "Tonal layering on near-black with 1px white hairlines.",
           "Sentence-case Plus Jakarta Sans, bold, tightly tracked headings, tabular numerals.",
           "Plain-English status vocabulary with one hue per meaning.",
-          "Desktop sidebar, mobile top bar plus bottom tab bar."
+          "Desktop sidebar, mobile top bar plus bottom tab bar.",
+          "A full-page article editor that writes on the public reading column."
         ],
         "dos": [
           "Do keep Xelvo Orange to primary actions, needs-reply state (badges, new dots, the New pill) and the logo.",
@@ -1067,7 +1230,8 @@
           "Do show status as a tinted pill with a dot, using the plain-English vocabulary: New, Contacted, Interested, Won, Closed / New, Reviewing, Contacted, Hired, Not selected.",
           "Do separate surfaces with tone steps and 1px white hairlines (8%, or 14% for controls).",
           "Do confirm every delete and every unsaved-changes discard in an in-app dialog, and toast every save.",
-          "Do mirror the public card exactly inside a live preview, including its gradients, by rendering the real public component."
+          "Do mirror the public card exactly inside a live preview, including its gradients, by rendering the real public component.",
+          "Do show article status as Draft, Scheduled or Published pills, and write articles on the shared article-body canvas."
         ],
         "donts": [
           "Don't put a coloured glow or halo on buttons or cards; primary buttons are flat.",
@@ -1080,14 +1244,15 @@
       },
       "public": {
         "northStar": "The Gallery That Keeps Moving",
-        "overview": "The public site is a near-black gallery where the work leads. On the Portfolio page, a stage plays the studio's chosen projects one at a time, each shown whole, and below it a wall shows every project at its true shape. Multi-image projects page through their own images on staggered clocks, and any project opens into a quiet, opaque viewer with its story.\n\nThe material is charcoal (#111111) with a deeper black (#0b0b0b) behind images, white ink with translucent-white secondary text, full-colour images in 16px corners with a faint white hairline, and the brand's amber-to-orange gradient kept to a few marked places. Capsules and controls are solid dark fills, never glass. Plus Jakarta Sans carries everything, bold for headings.",
+        "overview": "The public site is a near-black gallery where the work leads. On the Portfolio page, a stage plays the studio's chosen projects one at a time, each shown whole, and below it a wall shows every project at its true shape. Multi-image projects page through their own images on staggered clocks, and any project opens into a quiet, opaque viewer with its story.\n\nThe material is charcoal (#111111) with a deeper black (#0b0b0b) behind images, white ink with translucent-white secondary text, full-colour images in 16px corners with a faint white hairline, and the brand's amber-to-orange gradient kept to a few marked places. Capsules and controls are solid dark fills, never glass. Plus Jakarta Sans carries everything, bold for headings.\n\nThe blog reads like the studio's journal. The newest article opens large, and the rest follow as calm entries in one column. A thin hairline, the journal spine, runs down the left of the feed with each entry's date on it. On the article page the same spine becomes the gradient reading-progress bar and the contents rail's active marker.",
         "keyCharacteristics": [
           "The work leads: images at their own shape, full colour, nothing laid over them except a legibility scrim.",
-          "The brand gradient appears on the heading word, the active filter chip and the gradient CTA, nowhere decorative.",
+          "The brand gradient appears on the heading word, the active filter chip, the reading-progress bar and the contents marker, and the CTA gradient on CTAs; nowhere decorative.",
           "Pill dots show position: the active dot stretches and turns orange.",
           "Solid dark capsules and controls, no backdrop blur.",
           "Category is quiet metadata under the title, never an eyebrow above it.",
-          "Motion runs only while on screen, pauses on hover, and stops under reduced motion."
+          "Motion runs only while on screen, pauses on hover, and stops under reduced motion.",
+          "Articles read at 18px on a 68ch measure, with the journal spine tying the feed and the article together."
         ],
         "dos": [
           "Do set public pages on Charcoal Ground (#111111) with Deep Black (#0b0b0b) behind images.",
@@ -1098,7 +1263,9 @@
           "Do put the category under the title as muted metadata.",
           "Do run auto-advance only while on screen (35% visible), pause it on hover and in hidden tabs, stop it under reduced motion, and restart the full interval after a manual pick.",
           "Do build filter chips from the admin's categories exactly as typed.",
-          "Do keep the Home case-study cards in their original white design; only their image area plays and opens the preview."
+          "Do keep the Home case-study cards in their original white design; only their image area plays and opens the preview.",
+          "Do set article text at 18px with 1.75 leading on a 68ch measure, from the shared article-body rules.",
+          "Do keep the journal spine to the feed's dateline hairline, the reading-progress bar and the contents marker."
         ],
         "donts": [
           "Don't use backdrop blur or glass panels on public capsules and controls; use solid dark fills.",
@@ -1106,7 +1273,8 @@
           "Don't put the category above a title as an eyebrow.",
           "Don't crop the stage or preview image, or force the wall into equal cropped cells.",
           "Don't replace the Home case-study cards with portfolio cards.",
-          "Don't carry the public CTA glow or brand gradient into the admin's own chrome."
+          "Don't carry the public CTA glow or brand gradient into the admin's own chrome.",
+          "Don't paint the spine hairline itself with the brand gradient; it is a neutral white fade."
         ]
       }
     }

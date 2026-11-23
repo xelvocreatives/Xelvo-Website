@@ -4,7 +4,7 @@ description: One brand, two scoped worlds. The admin is the studio's private bac
 # SCOPES. Unprefixed tokens belong to the ADMIN world and apply only inside `.xa`
 # (app/admin/**, app/login/**, components/admin/**). Tokens prefixed `public-`
 # belong to the PUBLIC world and apply to every other route and component
-# (app/page.tsx, app/portfolio/**, app/career/**, components/** outside admin).
+# (app/page.tsx, app/portfolio/**, app/career/**, app/blog/**, components/** outside admin).
 # The machine-readable scope map lives in .impeccable/design.json -> extensions.scopes.
 colors:
   # --- Admin world (.xa) ---
@@ -46,6 +46,8 @@ colors:
   public-cta-to: "#ff7700"
   public-on-brand: "#160a00"
   public-link: "#ff8a3d"
+  public-article-ink: "rgb(255 255 255 / 0.86)"
+  public-home-subtext: "#b9b9b9"
   public-case-card: "#ffffff"
   public-case-text: "#000000"
 typography:
@@ -89,6 +91,12 @@ typography:
     fontSize: "12px"
     fontWeight: 600
     lineHeight: 1
+  editor-title:
+    fontFamily: "Plus Jakarta Sans, sans-serif"
+    fontSize: "30px"
+    fontWeight: 700
+    lineHeight: 1.25
+    letterSpacing: "-0.02em"
   # --- Public world ---
   public-display:
     fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
@@ -131,6 +139,66 @@ typography:
     fontSize: "12px"
     fontWeight: 500
     lineHeight: 1.4
+  public-section-home:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "40px"
+    fontWeight: 700
+    lineHeight: 1.25
+  public-article-title:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "48px"
+    fontWeight: 700
+    lineHeight: 1.1
+    letterSpacing: "-0.025em"
+  public-lead:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "40px"
+    fontWeight: 700
+    lineHeight: 1.15
+    letterSpacing: "-0.02em"
+  public-lead-sm:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "28px"
+    fontWeight: 700
+    lineHeight: 1.15
+    letterSpacing: "-0.02em"
+  public-entry-title:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "24px"
+    fontWeight: 700
+    lineHeight: 1.375
+    letterSpacing: "-0.01em"
+  public-entry-title-sm:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "22px"
+    fontWeight: 700
+    lineHeight: 1.375
+    letterSpacing: "-0.01em"
+  public-standfirst:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "20px"
+    fontWeight: 400
+    lineHeight: 1.625
+  public-article-body:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "18px"
+    fontWeight: 400
+    lineHeight: 1.75
+  public-lead-excerpt:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "17px"
+    fontWeight: 400
+    lineHeight: 1.625
+  public-label-lg:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "16px"
+    fontWeight: 600
+    lineHeight: 1.4
+  public-dateline:
+    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "13px"
+    fontWeight: 500
+    lineHeight: 1.375
 rounded:
   # --- Admin world (.xa) ---
   sm: "8px"
@@ -156,6 +224,8 @@ spacing:
   section: "56px"
   sidebar: "248px"
   content-max: "1240px"
+  editor-bar: "64px"
+  editor-aside: "340px"
   # --- Public world ---
   public-wall-gap: "20px"
   public-wall-gap-sm: "16px"
@@ -163,6 +233,12 @@ spacing:
   public-hit-min: "24px"
   public-aside: "380px"
   public-content-max: "1400px"
+  public-feed-max: "1120px"
+  public-spine: "132px"
+  public-article-column: "820px"
+  public-article-wide: "1040px"
+  public-measure: "68ch"
+  public-toc: "220px"
 components:
   # --- Admin world (.xa) ---
   button-primary:
@@ -247,6 +323,28 @@ components:
     textColor: "{colors.ink}"
     rounded: "{rounded.full}"
     size: "44px"
+  editor-top-bar:
+    backgroundColor: "{colors.ground}"
+    height: "{spacing.editor-bar}"
+  editor-toolbar:
+    backgroundColor: "{colors.panel}"
+    padding: "8px"
+  editor-toolbar-button:
+    textColor: "{colors.muted}"
+    rounded: "{rounded.sm}"
+    size: "36px"
+  editor-toolbar-button-active:
+    backgroundColor: "rgb(255 255 255 / 0.12)"
+    textColor: "{colors.ink}"
+  editor-canvas:
+    backgroundColor: "{colors.public-ground}"
+    textColor: "{colors.public-article-ink}"
+    typography: "{typography.public-article-body}"
+    rounded: "{rounded.lg}"
+    padding: "40px"
+  editor-title-field:
+    textColor: "{colors.ink}"
+    typography: "{typography.editor-title}"
   # --- Public world ---
   public-portfolio-card:
     backgroundColor: "{colors.public-deep}"
@@ -302,14 +400,59 @@ components:
     textColor: "{colors.public-case-text}"
     rounded: "{rounded.public-case-card}"
     padding: "15px 40px"
+  public-feed-lead:
+    backgroundColor: "{colors.public-deep}"
+    textColor: "{colors.public-ink}"
+    typography: "{typography.public-lead}"
+    rounded: "{rounded.public-image}"
+  public-feed-entry:
+    backgroundColor: "{colors.public-deep}"
+    textColor: "{colors.public-ink}"
+    typography: "{typography.public-entry-title}"
+    rounded: "{rounded.public-image}"
+  public-article-body:
+    textColor: "{colors.public-article-ink}"
+    typography: "{typography.public-article-body}"
+    width: "{spacing.public-measure}"
+  public-reading-progress:
+    height: "3px"
+  public-search:
+    textColor: "{colors.public-ink}"
+    rounded: "{rounded.public-full}"
+    padding: "0 16px 0 44px"
+    height: "44px"
+  public-tag:
+    textColor: "{colors.public-muted}"
+    typography: "{typography.public-dateline}"
+    rounded: "{rounded.public-full}"
+    padding: "0 12px"
+    height: "32px"
+  public-share-button:
+    textColor: "{colors.public-ink}"
+    rounded: "{rounded.public-full}"
+    size: "44px"
+  public-load-more:
+    textColor: "{colors.public-ink}"
+    rounded: "{rounded.public-full}"
+    padding: "0 28px"
+    height: "48px"
+  public-outline-link:
+    textColor: "{colors.public-ink}"
+    rounded: "{rounded.public-cta}"
+    padding: "14px 28px"
+  public-closing-cta:
+    backgroundColor: "{colors.public-deep}"
+    textColor: "{colors.public-ink}"
+    rounded: "{rounded.public-empty}"
+    padding: "40px"
 ---
 
 # Design System: Xelvo Creatives
 
 Scope: this file governs two worlds that share one brand and one typeface but keep separate tokens.
 
-- **Admin world.** Every `/admin` route, the admin shell and `/login`, all rendered inside the `.xa` scope (`app/admin/**`, `app/login/**`, `components/admin/**`). It uses the unprefixed tokens. Everything under "Admin world" below is unchanged in meaning from the admin-only edition of this file.
-- **Public world.** Every other route and component: Home (`app/page.tsx`), Portfolio (`app/portfolio/**`), Careers (`app/career/**`), and `components/**` outside `components/admin`, including `components/portfolio/**`. It uses the `public-` tokens.
+- **Admin world.** Every `/admin` route (including the Blog list and article editor), the admin shell and `/login`, all rendered inside the `.xa` scope (`app/admin/**`, `app/login/**`, `components/admin/**`). It uses the unprefixed tokens. Everything under "Admin world" below is unchanged in meaning from the admin-only edition of this file.
+- **Public world.** Every other route and component: Home (`app/page.tsx`), Portfolio (`app/portfolio/**`), Careers (`app/career/**`), Blog (`app/blog/**`), and `components/**` outside `components/admin`, including `components/portfolio/**`, `components/blog/**` and `components/BlogHighlights.tsx`. It uses the `public-` tokens.
 
 Admin sizes and colours must not be used to judge public files, and public tokens must not be used to judge admin files. The one deliberate crossing is the admin's live preview, where public components render inside the admin frame (The Preview Exception Rule).
 
@@ -325,6 +468,8 @@ The material is the Xelvo brand at night: a near-black ground, slightly lifted p
 
 The signature is the live website preview. In the project and testimonial editors, a copy of the public site's card updates as the owner types or picks an image, so they see the website result before saving.
 
+The article editor follows the same idea. The owner writes on the public article's own dark page and reading column, so what they type is what readers will see.
+
 **Key Characteristics:**
 - Image-first: projects show as 14px-cornered photo tiles, not table rows.
 - One accent with a strict job list (primary action, needs-reply, logo).
@@ -332,6 +477,7 @@ The signature is the live website preview. In the project and testimonial editor
 - Sentence-case Plus Jakarta Sans, bold, tightly tracked headings, tabular numerals.
 - Plain-English status vocabulary with one hue per meaning.
 - Desktop sidebar, mobile top bar plus bottom tab bar.
+- A full-page article editor that writes on the public reading column.
 
 ### Public world
 
@@ -341,13 +487,16 @@ The public site is a near-black gallery where the work leads. On the Portfolio p
 
 The material is charcoal (#111111) with a deeper black (#0b0b0b) behind images, white ink with translucent-white secondary text, full-colour images in 16px corners with a faint white hairline, and the brand's amber-to-orange gradient kept to a few marked places. Capsules and controls are solid dark fills, never glass. Plus Jakarta Sans carries everything, bold for headings.
 
+The blog reads like the studio's journal. The newest article opens large, and the rest follow as calm entries in one column. A thin hairline, the journal spine, runs down the left of the feed with each entry's date on it. On the article page the same spine becomes the gradient reading-progress bar and the contents rail's active marker.
+
 **Key Characteristics:**
 - The work leads: images at their own shape, full colour, nothing laid over them except a legibility scrim.
-- The brand gradient appears on the heading word, the active filter chip and the gradient CTA, nowhere decorative.
+- The brand gradient appears on the heading word, the active filter chip, the reading-progress bar and the contents marker, and the CTA gradient on CTAs; nowhere decorative.
 - Pill dots show position: the active dot stretches and turns orange.
 - Solid dark capsules and controls, no backdrop blur.
 - Category is quiet metadata under the title, never an eyebrow above it.
 - Motion runs only while on screen, pauses on hover, and stops under reduced motion.
+- Articles read at 18px on a 68ch measure, with the journal spine tying the feed and the article together.
 
 ## Colors
 
@@ -379,9 +528,9 @@ Each status hue appears only as a 12% tint fill with full-strength text and dot,
 - **Placeholder Grey** (placeholder): input placeholders.
 
 #### Named Rules
-**The Orange Reserve Rule.** Xelvo Orange means "do this" or "someone is waiting". It goes on primary actions, needs-reply state (badges, new dots, the New pill) and the logo, and on nothing else. Avatars are neutral charcoal. If orange marks something that is neither an action nor a waiting person, it is wrong. The keyboard focus ring is the one global exception (2px orange outline, 2px offset), because the build sets it in the scope stylesheet for accessibility.
+**The Orange Reserve Rule.** Xelvo Orange means "do this" or "someone is waiting". It goes on primary actions, needs-reply state (badges, new dots, the New pill) and the logo, and on nothing else. Avatars are neutral charcoal. If orange marks something that is neither an action nor a waiting person, it is wrong. The keyboard focus ring is the one global exception (2px orange outline, 2px offset), because the build sets it in the scope stylesheet for accessibility. The article editor's caret, gap cursor and selected-block outline (2px, 3px offset) are the same focus device.
 
-**The Preview Exception Rule.** Inside a live-preview frame, the public site's styling wins: the real public PortfolioCard on its #111111 ground in the project editor, and the gradient avatar on the #121212 review card in the testimonial editor. A preview has to be the public card. That styling never leaves the frame.
+**The Preview Exception Rule.** Inside a live-preview frame, the public site's styling wins: the real public PortfolioCard on its #111111 ground in the project editor, the gradient avatar on the #121212 review card in the testimonial editor, and the article editor's writing canvas (Charcoal Ground with the public article body rules, including Link Orange links and list markers). A preview has to be the public card. That styling never leaves the frame.
 
 **The Tint, Not Block Rule.** Status hues appear as a 12% tint with full-strength text plus a 6px dot. Solid fills are reserved for the orange count badge and the active filter tab.
 
@@ -390,10 +539,10 @@ Each status hue appears only as a 12% tint fill with full-strength text and dot,
 Charcoal and black, white ink, and one brand gradient used in a few named places.
 
 #### Primary
-- **Brand Gradient** (public-brand-from to public-brand-to, amber to orange): the GradientText heading word (a left-to-right gradient clipped to text, such as "work" in "Our work") and the fill of the active filter chip (135deg). Text sitting on the gradient uses **Ember Ink** (public-on-brand), never white.
+- **Brand Gradient** (public-brand-from to public-brand-to, amber to orange): the GradientText heading word (a left-to-right gradient clipped to text, such as "work" in "Our work" or "insights" in "Studio insights"), the fill of the active filter chip and the active blog category tab (135deg), the article's 3px reading-progress bar (90deg) and the contents rail's 2px active marker (top to bottom). Text sitting on the gradient uses **Ember Ink** (public-on-brand), never white.
 - **CTA Gradient** (public-brand-to to public-cta-to, 135deg): the public call-to-action buttons ("Book Your Free Consultation", "Start your success journey", "Start a project"), with white text and an orange glow (see Elevation & Depth).
 - **Signal Orange** (public-brand-to, solid): the active pill dot, the active preview thumbnail ring and the 2px focus outline.
-- **Link Orange** (public-link): inline text links on dark, such as "tell us about your project".
+- **Link Orange** (public-link): inline text links on dark, such as "tell us about your project". In the article body, links carry a 45% Link Orange underline that turns solid on hover, and list markers use Link Orange. Highlighted text and selection use Signal Orange tints (28% and 35%).
 
 #### Neutral
 - **Charcoal Ground** (public-ground): the page behind every public route.
@@ -406,9 +555,11 @@ Charcoal and black, white ink, and one brand gradient used in a few named places
 - **Hairline** (public-line, white at 8%): the ring around images and the dividers in the preview. **Control Line** (public-line-control, white at 12%): inactive filter chip borders.
 - **Capsule Black** (public-capsule, #0b0b0b at 75%): the solid dot capsule that sits on images.
 - **Case Card White** (public-case-card) with **Case Text Black** (public-case-text): the Home case-study cards only.
+- **Article Ink** (public-article-ink, white at 86%): the article body text. Headings and bold text inside it are White Ink.
+- **Home Subtext Grey** (public-home-subtext): the one-line subtext under Home section titles (Testimonials, Latest from the blog).
 
 #### Named Rules
-**The Gradient Places Rule.** The brand gradient has exactly two jobs: the GradientText heading word and the active filter chip. The CTA gradient has one: public call-to-action buttons. Neither is a background, a border or a decoration.
+**The Gradient Places Rule.** The brand gradient has exactly four jobs: the GradientText heading word, the active filter chip (and the blog's active category tab), the article's reading-progress bar and the contents rail's active marker. The CTA gradient has one: public call-to-action buttons. Neither is a background, a border or a decoration. The journal spine's hairline is a neutral white fade (22% to 5%), not the brand gradient.
 
 **The Glow Belongs Outside Rule.** The orange glow on public CTA buttons is a public-world device. The admin's No Glow Rule stays in force inside `.xa`, and the glow never enters the admin's own chrome.
 
@@ -429,11 +580,12 @@ Charcoal and black, white ink, and one brand gradient used in a few named places
 - **Body small** (400, 14px): card secondary lines, dialog copy, nav footer.
 - **Label** (600, 13px): form labels (14px semibold), small buttons, filter tabs, hints and errors (13px).
 - **Caption** (600, 12px, line-height 1): status pills, card meta, the project category line on tiles. The count badge uses 11px bold.
+- **Editor title** (editor-title, 700, 30px mobile / 38px from sm, -0.02em): the article title field in the article editor, set borderless on the page like the finished headline.
 
 #### Named Rules
 **The Sentence Case Rule.** Every label, button and heading is sentence case. No uppercase tracked labels, and no kicker or eyebrow line above a heading. The date above the Home greeting is content, not a label.
 
-**The Plain Words Rule.** Statuses read New, Contacted, Interested, Won, Closed (leads) and New, Reviewing, Contacted, Hired, Not selected (applications). Navigation reads Home, Leads, Job applications, Projects, Testimonials. On mobile these shorten to Jobs and Reviews. No themed jargon.
+**The Plain Words Rule.** Statuses read New, Contacted, Interested, Won, Closed (leads), New, Reviewing, Contacted, Hired, Not selected (applications) and Draft, Scheduled, Published (articles). Navigation reads Home, Leads, Job applications, Projects, Testimonials, Blog. On mobile these shorten to Jobs and Reviews. No themed jargon.
 
 ### Public world
 
@@ -452,14 +604,27 @@ Charcoal and black, white ink, and one brand gradient used in a few named places
 - **Meta** (public-meta, 500, 14px): the category under the stage and preview titles, and the preview's "2 / 5" counter (tabular).
 - **Caption** (public-caption, 500, 12px): the category under the card title and the preview keyboard tip.
 
+Home and blog steps:
+- **Home section** (public-section-home, 700, 40px desktop / 30px mobile): the Testimonials, FAQ and "Latest from the blog" section titles, with a GradientText word. Their subtext is 18px / 16px in Home Subtext Grey.
+- **Article title** (public-article-title, 700, 48px from sm / 32px mobile, 1.1, -0.025em, balanced): the article h1. The standfirst below it is 20px / 18px (public-standfirst) at white 70%.
+- **Lead** (public-lead, 700, 40px from sm, 1.15, -0.02em, balanced): the newest article's title on the blog feed. Below sm it drops to **Lead small** (public-lead-sm, 28px). Lead small is also the Home blog lead title on lg (24px below lg, 1.375).
+- **Lead excerpt** (public-lead-excerpt, 400, 17px, 1.625): the feed lead's excerpt at white 70%, capped at 68ch.
+- **Entry title** (public-entry-title, 700, 24px from sm, 1.375, -0.01em): later feed entries. Below sm, **Entry title small** (public-entry-title-sm, 22px). Read next and Home side-entry titles use the 18px Title size.
+- **Article body** (public-article-body, 400, 18px, 1.75, Article Ink, 68ch): the reading column. Inside it, h2 is 28px, h3 22px and h4 18px (700, 1.25, -0.015em), quotes are 20px italic white, tables 15px and figure captions 14px at white 55%.
+- **Large label** (public-label-lg, 600, 16px): full-size public CTAs, including the article's "Start a project".
+- **Dateline** (public-dateline, 500, 13px, tabular): the feed's spine dates (white 55%) and the article's tag chips.
+- Entry meta ("Category · 6 min read · 12 Nov 2026") uses the 14px size at white 55% to 60%.
+
 #### Named Rules
-**The Metadata Below Rule.** A project's category always sits under its title as muted metadata (white at 70%, medium weight). It never sits above the title as a kicker or eyebrow.
+**The Metadata Below Rule.** A project's category always sits under its title as muted metadata (white at 70%, medium weight). It never sits above the title as a kicker or eyebrow. Blog entries follow the same rule: category, reading time and date sit in one meta line under the excerpt.
+
+**The Reading Column Rule.** Article text is 18px with 1.75 leading on a 68ch measure, set by one shared article-body stylesheet. The public article page and the admin editor canvas both use it, so the owner writes exactly what readers see. Never restyle article text in only one of the two.
 
 ## Layout
 
 ### Admin world
 
-- **Shell:** a fixed 248px sidebar on desktop (lg and up) holds the logo, five nav items with count badges, then View website, Log out and the signed-in email. Below lg, a 56px sticky top bar (logo, view site, log out) and a fixed 64px five-column bottom tab bar take its place. Both bars use a translucent rail fill with backdrop blur.
+- **Shell:** a fixed 248px sidebar on desktop (lg and up) holds the logo, six nav items with count badges, then View website, Log out and the signed-in email. Below lg, a 56px sticky top bar (logo, view site, log out) and a fixed 64px six-column bottom tab bar take its place. Both bars use a translucent rail fill with backdrop blur.
 - **Content column:** max 1240px, gutters of 16px / 24px / 40px (mobile, sm, lg), top padding 24px to 40px, and extra bottom padding on mobile to clear the tab bar.
 - **Rhythm:** 56px between Home sections, 48px between board sections, 32px below a page header, 16px below a section heading, and 12px to 16px gaps inside card grids.
 - **Needs-your-reply strip:** person cards in 1, 2 or 3 columns (md, xl).
@@ -468,6 +633,8 @@ Charcoal and black, white ink, and one brand gradient used in a few named places
 - **Lists:** one bordered panel with hairline-divided rows. Rows use a 6-column grid on md and collapse to three columns on mobile.
 - **Editors:** a right-hand slide-over up to 1120px wide. The form column sits beside a sticky preview column on lg (400px in the project editor, 420px in the testimonial editor) and stacks on mobile.
 - **Gallery:** project images sit in a 2-column (3 on sm) grid of 4:3 thumbnails with 12px gaps, up to 12 images. Drag reorders them; the first is the cover.
+- **Article list:** the standard list panel. Each row has a 16:10 cover thumbnail (96px, 128px from sm), the title (15px semibold) over a meta line (category, reading time, edited / goes live / published date), the status pill from sm, and the row's action menu.
+- **Article editor:** a full page, not a slide-over. A 64px top bar (back link, save state, Preview, Save draft, the primary publish action) sticks to the top on lg and stacks above the form on mobile. The writing column sits beside a 340px settings aside on xl (sticky, scrolling on its own); below xl the aside follows the writing column. The aside is a stack of 16px panels: Publishing, Cover image, Summary, Category and tags, Author and link, Search preview.
 - **Login:** two columns on lg. The left shows a 2x2 mosaic of featured project images with an 8px gap; the right holds a 380px form column.
 
 #### Named Rules
@@ -482,6 +649,9 @@ Charcoal and black, white ink, and one brand gradient used in a few named places
 - **Wall:** CSS masonry columns, 1 / 2 / 3 (mobile, sm, lg), with 16px / 20px gaps. Every card keeps its own height.
 - **Preview:** full screen. The image area fills the space with 16px / 32px padding and a thumbnail strip below. The story column is 380px on the right on lg, and a bottom panel capped at 38dvh below lg.
 - **Home case studies:** a 1280px column of full-width white cards with 20px gaps. The text alternates sides, and the image area is 670px by 220px.
+- **Blog feed:** a 1120px column with the same top padding as Portfolio. A title row (h1 with count, subtext on the right) sits over a row of category tabs and a 288px search field, divided from the feed by a hairline. On lg the feed is a two-column grid: a 132px dateline gutter, the spine hairline on its edge, and the entries indented 40px. The lead entry's cover is 2:1 on lg and 16:9 below. Later entries split cover (16:10) and text side by side from md, divided by hairlines with 40px above each; below md they stack cover over text. Eight entries show, then "Load more articles" adds eight. On mobile the category tabs scroll horizontally edge to edge and the date joins the meta line.
+- **Article:** an 820px column for the header, body and footer. When the article has two or more headings, the column widens to 1040px on xl with a 220px sticky contents rail on the right; header, body and footer still share one left edge. The 16:9 cover spans 1040px. The body and its footer cap at 68ch. Below the article, "Read next" is a 1, 2 or 3-column grid (sm, lg) of up to three same-category articles, then the closing CTA panel.
+- **Home blog section:** after Testimonials and before FAQ, in a 1280px column. A centred title and subtext sit over the newest article (16:10 cover) beside the next two stacked (16:11 covers), split 1.25 to 1 on lg; with a single article it centres at 768px. The section renders nothing until an article is published. A "Read all articles" outline link closes it.
 
 #### Named Rules
 **The True Shape Rule.** The wall shows each project at its cover's real proportions in masonry columns. A multi-image card takes its height from the cover, and later images crop to that cover's shape. Never force the wall into equal cropped cells.
@@ -489,6 +659,8 @@ Charcoal and black, white ink, and one brand gradient used in a few named places
 **The Admin Categories Rule.** Filter chips are built from the categories the owner types in the admin, exactly as typed (trimmed, grouped case-insensitively, shown with the first spelling and a count), after an "All" chip. No invented taxonomy.
 
 **The One Portfolio Route Rule.** `/portfolio` is the portfolio. `/projects` permanently redirects (308) to it.
+
+**The Journal Spine Rule.** The spine is one system used in exactly three places: the feed's 1px hairline (white 22% fading to 5%) with a 13px dateline and a 9px hollow node (Charcoal Ground with a white-30% ring) level with each cover's top, on lg only; the article's 3px brand-gradient reading-progress bar, pinned to the bottom edge of the fixed Header; and the contents rail, which repeats the same hairline with a 2px brand-gradient marker on the section being read. Do not add it anywhere else.
 
 ## Elevation & Depth
 
@@ -518,6 +690,8 @@ Flat dark surfaces with three depth devices: a soft black lift on hover, a black
 - **Card lift** (`box-shadow: 0 24px 50px -20px rgb(0 0 0 / 0.9)` with a 4px rise): portfolio card hover.
 - **Stage drop** (`filter: drop-shadow(0 30px 40px rgb(0 0 0 / 0.55))`): the contained stage image over its blurred backdrop.
 
+The blog adds no shadows. Covers sit flat in their ring and zoom slightly on hover (1.02 for leads, 1.03 for entries, 700ms). Only the article's closing CTA button carries the CTA glow.
+
 #### Named Rules
 **The Legibility Scrim Rule.** The only gradient laid over an image is a bottom legibility scrim: on cards, black 85% to 40% at 55% to transparent; on the stage caption, #0b0b0b at 92% to 60% at 60% to transparent. It exists so text can be read, never for mood.
 
@@ -527,11 +701,11 @@ Flat dark surfaces with three depth devices: a soft black lift on hover, a black
 
 ### Admin world
 
-Corners are generous and consistent. Small controls (small and icon buttons, menu items) use 8px. Default buttons, inputs, nav items, menus and toasts use 12px. Project images and tiles use 14px. Panels, cards, dialogs and empty states use 16px. Pills, badges, filter tabs, avatars and status dots are fully round. Borders are always 1px. Empty states and "nothing here" notes use a dashed strong hairline. The public-card preview keeps the public card's own corners (16px for the portfolio card, 20px and 22px for the review card).
+Corners are generous and consistent. Small controls (small and icon buttons, menu items) use 8px. Default buttons, inputs, nav items, menus and toasts use 12px. Project images and tiles use 14px. Panels, cards, dialogs and empty states use 16px. Pills, badges, filter tabs, avatars and status dots are fully round. Borders are always 1px. Empty states and "nothing here" notes use a dashed strong hairline. The public-card preview keeps the public card's own corners (16px for the portfolio card, 20px and 22px for the review card). In the article editor, the writing canvas uses 16px corners with a strong hairline ring (white 25% on focus, red on error), toolbar buttons use 8px, publish-mode options 12px, and the article list's cover thumbnails 8px.
 
 ### Public world
 
-Images and image frames (cards, stage, case-study image areas) use 16px corners with a 1px white-8% ring (case-study images carry no ring). Preview thumbnails use 8px. The stage action and the preview CTA use 12px, and the Home and Services CTAs use 10px. Home case-study cards use 20px and the empty state uses 24px with a dashed white-15% border. Chips, dots, dot capsules and the close button are fully round. Dots are 6px pills on cards and 8px on the stage; the active dot stretches to 20px (cards) or 28px (stage).
+Images and image frames (cards, stage, case-study image areas) use 16px corners with a 1px white-8% ring (case-study images carry no ring). Preview thumbnails use 8px. The stage action and the preview CTA use 12px, and the Home and Services CTAs use 10px. Home case-study cards use 20px and the empty state uses 24px with a dashed white-15% border. Chips, dots, dot capsules and the close button are fully round. Dots are 6px pills on cards and 8px on the stage; the active dot stretches to 20px (cards) or 28px (stage). Blog covers (feed, article, Read next, Home) use the 16px image corner with the white-8% ring. Category tabs, the search field, tag chips, share buttons and "Load more articles" are fully round; the closing CTA panel uses 24px and the Home "Read all articles" outline link 10px. Inside the article body, images and video embeds use 16px, code blocks 14px, inline code 6px and highlights 4px.
 
 ## Components
 
@@ -551,6 +725,7 @@ Solid, compact and quick to respond.
 - **Status pill:** fully round, 4px by 10px padding, 12px semibold, with a tinted fill, full-strength text and a 6px leading dot. Tone follows the Plain Words vocabulary. New is the only orange pill.
 - **Count badge:** a solid orange 20px pill on nav items (16px compact on the tab bar). It shows unread counts only.
 - **New dot:** an 8px orange dot beside the name on unreplied leads and applications.
+- **Article status:** Draft (neutral: white 8% fill, Stone text), Scheduled (Contact Blue, a published article with a future date) and Published (Won Green), in the standard pill shape.
 
 #### Filter tabs
 Link-based, fully round, 36px chips with a strong hairline and Stone text, each with its count. The active tab inverts to a Warm Ink fill with Night Ground text. On mobile the row scrolls horizontally.
@@ -578,7 +753,7 @@ Round, in 36, 44 and 64px sizes. A neutral #242424 fill with a 10% white ring an
 - **Search:** a 40px field with a leading search icon and a clear button, debounced into the URL.
 
 #### Navigation
-The sidebar nav items are 44px tall with 12px corners and 15px medium text. Idle items show Stone text with an Ash icon. The active item has a 7% white wash, Warm Ink text and an orange icon. Count badges sit on the right. The mobile tab bar uses five columns, 64px tall, 11px semibold labels and an orange icon when active.
+The sidebar nav items are 44px tall with 12px corners and 15px medium text. Idle items show Stone text with an Ash icon. The active item has a 7% white wash, Warm Ink text and an orange icon. Count badges sit on the right. The mobile tab bar uses six columns, 64px tall, 11px semibold labels and an orange icon when active.
 
 #### Dialogs, menus and toasts
 - **Confirm dialog:** every delete and every discard of unsaved changes goes through one. It is a 16px panel up to 448px wide, with a red-tinted warning disc when destructive, a Cancel (secondary) button and a confirm (danger or primary) button that keeps the dialog open with a spinner until the action settles.
@@ -587,6 +762,14 @@ The sidebar nav items are 44px tall with 12px corners and 15px medium text. Idle
 
 #### Live website preview (signature)
 The live preview sits in a sticky right column of the project and testimonial editors, under a "Live preview" label. It renders the public site's own components, not an admin card. The project preview renders the real public PortfolioCard (with its label always shown) inside a 320px #111111 frame, beside a small pill saying "Home + Portfolio" or "Portfolio page". With no images yet it shows a dashed placeholder. The testimonial preview is the public #121212 review card with its gradient avatar. Both update as the owner types or picks an image. The Preview Exception Rule applies: the public styling stays inside this frame.
+
+#### Article editor
+A full page for writing one article.
+- **Top bar:** Night Ground, 64px, sticky on lg. A back link (with an unsaved-changes confirm) and a quiet save-state line on the left; Preview or View live (ghost), Save draft (secondary) and the publish action (primary, small) on the right.
+- **Title field:** a borderless, auto-growing textarea in the Editor title size with a white-25% placeholder.
+- **Writing canvas:** Charcoal Ground (#111111) with 16px corners and a strong hairline ring, padded 32px by 20px (40px from sm). The text sits in a centred 68ch column with the public article body rules, under the Preview Exception Rule. A footer strip shows word count and reading time in 12px tabular Stone.
+- **Formatting toolbar:** a Panel Charcoal strip under a hairline. It wraps onto more rows at every width (no horizontal scroll) and sticks under the top bar only on lg. Controls are 36px with 8px corners, Stone icons at 17px, a 8% white hover, and a 12% white fill plus Warm Ink when active (`aria-pressed`). Groups are split by 20px strong-hairline separators. It holds undo/redo, a block-type select (Paragraph, Heading, Subheading, Small heading), marks, lists and quote, alignment, link, colour and highlight swatches (each showing the current colour as a 3px bar), image, YouTube and a table menu. Link and image settings open as Raised Charcoal popovers with a small primary button.
+- **Settings aside:** 16px Panel Charcoal panels with 14px bold titles. Publish timing is a two-option radio group (12px rows; the chosen one gets a white-25% border and 6% white fill). Category suggestions are small round chips that invert to Warm Ink when chosen, like filter tabs. The search preview is the one white card, imitating a Google result.
 
 #### Empty states
 A dashed strong-hairline 16px panel, centred, with a 48px round icon disc at 5% white, a bold 16px title, a short Stone description and, where useful, a primary action.
@@ -615,10 +798,24 @@ A full-screen dialog on opaque Viewer Black that fades and settles from 0.98.
 - **Close:** a 44px round Control Charcoal button with a white-15% ring, top right.
 
 #### Public CTA button
-The CTA Gradient (135deg) with white 16px semibold text, 10px corners, 16px by 32px padding and the CTA glow, with a trailing arrow that nudges right on hover. It scales to 1.02 on hover and 0.98 on press. The preview's "Start a project" is a compact 14px, 12px-cornered variant.
+The CTA Gradient (135deg) with white 16px semibold text, 10px corners, 16px by 32px padding and the CTA glow, with a trailing arrow that nudges right on hover. It scales to 1.02 on hover and 0.98 on press. The preview's "Start a project" is a compact 14px, 12px-cornered variant. The article's closing "Start a project" is the full 16px button with an up-right arrow.
 
 #### Home case-study cards
 The Home "How Muslim Brands Like Yours Scaled Globally" section keeps its original design. White 20px cards up to 250px tall, with the GradientText project name (40px bold) and black description, alternate sides beside a 670px by 220px, 16px-cornered image area, closing with the "This Could Be You" CTA card and its dashed orange placeholder. The only additions are in the image area: multi-image projects crossfade (900ms, every 3.8s, pausing on hover) with the same solid dot capsule (bottom centre), and clicking opens the shared project preview with a zoom-in cursor.
+
+#### Journal feed (blog)
+The /blog page. Category tabs are the filter-chip look as links (`aria-current`), built from the admin's categories with counts. The search field is a 44px round field on a white-3% fill with a white-12% border and a leading icon; focus turns the border Signal Orange with a 2px ring at 25%. Each entry is one link (the title's link covers the whole entry). The lead shows its cover, the Lead title, the Lead excerpt and the meta line; later entries show cover, Entry title, a 15px excerpt clamped to three lines at white 65% and the meta line. Datelines ride the spine on lg (The Journal Spine Rule). "Load more articles" is a 48px round outline button (white-15% border, 40% on hover) with "Showing n of total" below. The empty state is the dashed 24px panel with a Link Orange link.
+
+#### Article page
+- **Header:** an "All articles" back link (14px medium, white 60%), the Article title, the standfirst when the owner wrote one, then a meta line: the author (semibold, white 85%), date, category (a link to the filtered feed) and reading time, separated by trailing dots so a wrapped line never starts with one.
+- **Reading progress:** a 3px bar fixed to the bottom edge of the Header (it follows the Header as it shrinks). The brand gradient fills it from the left as the body is read.
+- **Contents rail:** "On this page" (14px semibold) over the heading list on the spine hairline. Items are 14px at white 55% (white 85% on hover); subheadings indent 28px. The section being read turns white medium with the 2px gradient marker on the hairline.
+- **Footer:** a hairline, tag chips (32px round, white-12% border, 13px medium, white 70%, linking to a tag search), then "Share this article" with 44px round share buttons (WhatsApp, LinkedIn, X, Copy link) in white-12% borders that brighten on hover. Copy link confirms with a check and a polite announcement.
+- **Read next:** a 24px bold heading over up to three entries: 16:10 cover, 18px bold title and a meta line.
+- **Closing CTA:** a Deep Black 24px panel with a hairline, a 30px / 24px bold prompt, a line of white-65% copy and the full Public CTA button.
+
+#### Latest from the blog (Home)
+The Home section for the three newest articles (Home blog section in Layout). The lead shows its cover, title, a two-line 15px excerpt and the meta line with date; the side entries show a smaller cover beside an 18px title, a two-line excerpt (hidden on mobile) and the meta line. Whole entries are links, covers zoom on hover, and the section closes with "Read all articles": a 10px-cornered outline link with a white-15% border and a trailing arrow.
 
 #### Navigation (Header)
 A fixed Header that is transparent at the top of the page and turns to Deep Black at 95% once scrolled. The mobile menu is opaque Deep Black.
@@ -634,6 +831,7 @@ A fixed Header that is transparent at the top of the page and turns to Deep Blac
 - **Do** separate surfaces with tone steps and 1px white hairlines (8%, or 14% for controls).
 - **Do** confirm every delete and every unsaved-changes discard in an in-app dialog, and toast every save.
 - **Do** mirror the public card exactly inside a live preview, including its gradients, by rendering the real public component.
+- **Do** show article status as Draft, Scheduled or Published pills, and write articles on the shared article-body canvas.
 
 #### Don't:
 - **Don't** put a coloured glow or halo on buttons or cards; primary buttons are flat.
@@ -655,6 +853,8 @@ A fixed Header that is transparent at the top of the page and turns to Deep Blac
 - **Do** run auto-advance only while on screen (35% visible), pause it on hover and in hidden tabs, stop it under reduced motion, and restart the full interval after a manual pick.
 - **Do** build filter chips from the admin's categories exactly as typed.
 - **Do** keep the Home case-study cards in their original white design; only their image area plays and opens the preview.
+- **Do** set article text at 18px with 1.75 leading on a 68ch measure, from the shared article-body rules.
+- **Do** keep the journal spine to the feed's dateline hairline, the reading-progress bar and the contents marker.
 
 #### Don't:
 - **Don't** use backdrop blur or glass panels on public capsules and controls; use solid dark fills.
@@ -663,3 +863,4 @@ A fixed Header that is transparent at the top of the page and turns to Deep Blac
 - **Don't** crop the stage or preview image, or force the wall into equal cropped cells.
 - **Don't** replace the Home case-study cards with portfolio cards.
 - **Don't** carry the public CTA glow or brand gradient into the admin's own chrome.
+- **Don't** paint the spine hairline itself with the brand gradient; it is a neutral white fade.

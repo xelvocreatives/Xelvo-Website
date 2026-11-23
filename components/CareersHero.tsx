@@ -1,10 +1,11 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { GradientText } from "./ui/GradientText";
+import { HighlightedText } from "./site/highlighted-text";
+import type { CareersContent } from "@/lib/site/schema";
 import Image from "next/image";
 
-export function CareersHero() {
+export function CareersHero({ content }: { content: CareersContent["hero"] }) {
   const scrollToForm = () => {
     const formElement = document.getElementById("careers-form");
     if (formElement) {
@@ -45,22 +46,18 @@ export function CareersHero() {
             height={15}
           />
           <h6 className="text-white text-[12px] font-medium leading-[21px]">
-            Careers @Xelvo Creatives
+            {content.badge}
           </h6>
         </div>
 
         {/* Main Headline */}
         <h1 className="text-3xl md:text-5xl lg:text-[64px] font-bold leading-tight lg:leading-[72px] text-center text-white tracking-tight lg:tracking-[-2px] animate-fade-in-up">
-          We&apos;re Always Looking for People Who{" "}
-          <GradientText>Care About the Work</GradientText>
+          <HighlightedText value={content.title} />
         </h1>
 
         {/* Sub-headline */}
         <p className="max-w-3xl mx-auto text-base md:text-lg lg:text-[20px] font-normal leading-relaxed lg:leading-[32px] text-center text-[#C7C7C7] animate-fade-in-up">
-          At Xelvo Creatives, we don&apos;t hire for rigid roles. We look for
-          talented minds who value meaningful creativity, take ownership of
-          their craft, and believe good work should mean something. If that
-          sounds like you, we&apos;d love to hear from you.
+          {content.description}
         </p>
 
         {/* Updated CTA Button to match Home Hero */}
@@ -74,7 +71,7 @@ export function CareersHero() {
                 "0 4px 20px rgba(255, 102, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)",
             }}
           >
-            <span>Join the Talent Pool</span>
+            <span>{content.ctaLabel}</span>
             <ArrowRight
               className="transition-transform duration-300 group-hover:translate-x-1"
               size={18}

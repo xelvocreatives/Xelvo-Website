@@ -1,29 +1,10 @@
-import { Users, Briefcase, TrendingUp } from "lucide-react";
 import { AnimatedCounter } from "./AnimatedCounter";
 import { GradientText } from "./ui/GradientText";
 
-export function TrustMetrics() {
-  const metrics = [
-    {
-      icon: Users,
-      number: 50,
-      suffix: "+",
-      label: "Satisfied Brands",
-    },
-    {
-      icon: Briefcase,
-      number: 200,
-      suffix: "+",
-      label: "Projects Completed",
-    },
-    {
-      icon: TrendingUp,
-      number: 4,
-      prefix: "",
-      suffix: ".7+",
-      label: "Successful Rating",
-    },
-  ];
+import type { HomeSections } from "@/lib/site/schema";
+
+export function TrustMetrics({ content }: { content: HomeSections["metrics"] }) {
+  const metrics = content.items;
 
   return (
     <section className="py-20 lg:py-[140px] px-4">
@@ -43,8 +24,8 @@ export function TrustMetrics() {
               <div className="text-[48px] lg:text-[64px] font-bold leading-tight lg:leading-[71px]">
                 <GradientText>
                   <AnimatedCounter
-                    end={metric.number}
-                    prefix={metric.prefix || ""}
+                    end={metric.value}
+                    prefix={metric.prefix}
                     suffix={metric.suffix}
                     duration={2000}
                   />

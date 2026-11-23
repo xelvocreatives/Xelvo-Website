@@ -1,47 +1,18 @@
 import React from "react";
-import { GradientText } from "./ui/GradientText";
+import { HighlightedText } from "./site/highlighted-text";
+import type { HomeSections } from "@/lib/site/schema";
 
-export function Framework() {
-  const phases = [
-    {
-      title: "Research & Discovery",
-      steps: [
-        { number: "1", text: "Brief Analysis" },
-        { number: "2", text: "Visual Audit" },
-        { number: "3", text: "Inspiration Gathering" },
-        { number: "4", text: "Moodboarding" },
-        { number: "5", text: "Visual Strategy" },
-      ],
-    },
-    {
-      title: "Art Directions",
-      steps: [
-        { number: "6", text: "Concept Ideation" },
-        { number: "7", text: "Copywriting" },
-        { number: "8", text: "Style Scapes" },
-        { number: "9", text: "Concept Presentation" },
-      ],
-    },
-    {
-      title: "Design Execution",
-      steps: [
-        { number: "10", text: "Drafting / Compositing" },
-        { number: "11", text: "Iteration Rounds" },
-        { number: "12", text: "Cross-Media Adaptation" },
-        { number: "13", text: "Realistic Mockups" },
-        { number: "14", text: "Design Polish" },
-      ],
-    },
-    {
-      title: "Delivery & Feedback",
-      steps: [
-        { number: "15", text: "File Preparation" },
-        { number: "16", text: "Asset Slicing" },
-        { number: "17", text: "Visual Guide (Lite)" },
-        { number: "18", text: "Feedback Loop" },
-      ],
-    },
-  ];
+// Literal class names so Tailwind generates them.
+const LG_COLS: Record<number, string> = { 1: "lg:grid-cols-1", 2: "lg:grid-cols-2", 3: "lg:grid-cols-3", 4: "lg:grid-cols-4" };
+
+export function Framework({ content }: { content: HomeSections["framework"] }) {
+  // Steps are numbered straight through all phases (1, 2, 3 … 18).
+  let counter = 0;
+  const phases = content.phases.map((phase) => ({
+    title: phase.title,
+    steps: phase.steps.map((text) => ({ number: String(++counter), text })),
+  }));
+  const last = phases.length - 1;
 
   return (
     <section
@@ -51,18 +22,15 @@ export function Framework() {
       {/* Header */}
       <div className="flex flex-col items-center gap-[16px]">
         <h2 className="text-3xl lg:text-[48px] font-bold leading-tight lg:leading-[52px] text-white text-center">
-          The <GradientText>Framework</GradientText> behind your Brand&apos;s
-          Success
+          <HighlightedText value={content.title} />
         </h2>
         <p className="max-w-[550px] text-center text-[14px] font-normal leading-[22px] text-white/70">
-          We don&apos;t follow trends blindly or design without context. Every
-          design we craft, aligns closely with your brand&apos;s purpose and
-          business goals.
+          {content.description}
         </p>
       </div>
 
       {/* Framework Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 relative w-full max-w-7xl mx-auto">
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${LG_COLS[phases.length] ?? "lg:grid-cols-4"} relative w-full max-w-7xl mx-auto`}>
         {phases.map((phase, index) => {
           // Determine borders based on position and breakpoint
           // Mobile: No vertical borders usually, maybe bottom borders
@@ -83,7 +51,7 @@ export function Framework() {
           // Desktop borders (4 cols)
           // Reset tablet borders
           // Right border for 0, 1, 2. No border for 3.
-          if (index < 3) {
+          if (index < last) {
             borderClasses += " lg:border-r lg:border-white";
           } else {
             borderClasses += " lg:border-r-0";
