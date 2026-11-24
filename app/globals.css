@@ -4,6 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* `font-sans` = the brand face (it fell back to system-ui before). */
+  --font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -253,6 +255,11 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Section links (#contact, #services…) stop below the fixed header. */
+section[id] {
+  scroll-margin-top: 6rem;
+}
+
 /* Selection Color */
 ::selection {
   background-color: #ff6600;
@@ -338,3 +345,186 @@ button {
     display: none !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Admin panel (scoped to .xa; the public site is unaffected)
+   --------------------------------------------------------------------------- */
+@theme inline {
+  --color-xa-ground: #0b0b0b;
+  --color-xa-panel: #141414;
+  --color-xa-raised: #1c1c1c;
+  --color-xa-line: rgb(255 255 255 / 0.08);
+  --color-xa-line-strong: rgb(255 255 255 / 0.14);
+  --color-xa-ink: #f4f1ec;
+  --color-xa-muted: #a19c95;
+  --color-xa-faint: #6f6a63;
+  --color-xa-accent: #ff6600;
+  --color-xa-accent-hover: #ff7a1f;
+  --color-xa-on-accent: #170a00;
+  --color-xa-blue: #7cb4ff;
+  --color-xa-violet: #b9a2ff;
+  --color-xa-green: #5fd68b;
+  --color-xa-red: #ff7a72;
+  --color-xa-whatsapp: #25d366;
+}
+
+.xa {
+  font-family: var(--font-plus-jakarta-sans), sans-serif;
+  font-variant-numeric: tabular-nums;
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+}
+.xa ::selection {
+  background: rgb(255 102 0 / 0.35);
+  color: #fff;
+}
+.xa :focus-visible {
+  outline: 2px solid var(--color-xa-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.xa input,
+.xa textarea {
+  caret-color: var(--color-xa-accent);
+}
+.xa input::placeholder,
+.xa textarea::placeholder {
+  color: #8a857e;
+}
+.xa * {
+  scrollbar-width: thin;
+  scrollbar-color: #2e2e2e transparent;
+}
+.xa a {
+  text-underline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .xa *,
+  .xa *::before,
+  .xa *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Blog article body: shared by the public article page and the admin editor,
+   so what the owner writes is exactly what readers see.
+   --------------------------------------------------------------------------- */
+.article-body {
+  color: rgb(255 255 255 / 0.86);
+  font-size: 1.125rem;
+  line-height: 1.75;
+  overflow-wrap: break-word;
+}
+.article-body > * + * { margin-top: 1.25em; }
+.article-body :where(h2, h3, h4) {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  text-wrap: balance;
+  scroll-margin-top: 7rem;
+}
+.article-body h2 { font-size: 1.75rem; margin-top: 2.2em; }
+.article-body h3 { font-size: 1.375rem; margin-top: 1.9em; }
+.article-body h4 { font-size: 1.125rem; margin-top: 1.7em; }
+.article-body :where(h2, h3, h4) + * { margin-top: 0.7em; }
+.article-body a {
+  color: #ff8a3d;
+  text-decoration: underline;
+  text-decoration-color: rgb(255 138 61 / 0.45);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.2s;
+}
+.article-body a:hover { text-decoration-color: currentColor; }
+.article-body strong { color: #fff; font-weight: 700; }
+.article-body a strong { color: inherit; }
+.article-body :where(ul, ol) { padding-left: 1.4em; }
+.article-body ul { list-style: disc; }
+.article-body ol { list-style: decimal; }
+.article-body li { margin-top: 0.4em; padding-left: 0.2em; }
+.article-body li::marker { color: #ff8a3d; }
+.article-body li > p { margin: 0; }
+.article-body blockquote {
+  margin-left: 0;
+  padding: 0.2em 0 0.2em 1.25em;
+  border-left: 1px solid rgb(255 255 255 / 0.25);
+  color: #fff;
+  font-size: 1.25rem;
+  font-style: italic;
+  line-height: 1.6;
+}
+.article-body code {
+  border-radius: 6px;
+  background: rgb(255 255 255 / 0.08);
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+}
+.article-body pre {
+  overflow-x: auto;
+  border-radius: 14px;
+  background: #0b0b0b;
+  padding: 1.1em 1.3em;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+.article-body pre code { background: none; padding: 0; font-size: inherit; }
+.article-body hr { border: 0; border-top: 1px solid rgb(255 255 255 / 0.12); margin: 2.5em 0; }
+.article-body img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+.article-body figure { margin: 2em 0; }
+.article-body figcaption {
+  margin-top: 0.75em;
+  color: rgb(255 255 255 / 0.55);
+  font-size: 0.875rem;
+  text-align: center;
+}
+.article-body div[data-youtube-video] { margin: 2em 0; }
+.article-body div[data-youtube-video] iframe {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 16px;
+}
+.article-body .table-wrap,
+.article-body .tableWrapper { overflow-x: auto; margin: 2em 0; }
+.article-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.article-body :where(th, td) {
+  border-bottom: 1px solid rgb(255 255 255 / 0.1);
+  padding: 0.7em 0.9em;
+  text-align: left;
+  vertical-align: top;
+}
+.article-body th { color: #fff; font-weight: 700; background: rgb(255 255 255 / 0.04); }
+.article-body :where(th, td) > p { margin: 0; }
+.article-body mark { border-radius: 4px; padding: 0.05em 0.2em; color: inherit; background: rgb(255 102 0 / 0.28); }
+.article-body ::selection { background: rgb(255 102 0 / 0.35); color: #fff; }
+
+/* Admin article editor (Tiptap) */
+.xa-editor .ProseMirror { outline: none; min-height: 55vh; }
+.xa-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: rgb(255 255 255 / 0.35);
+}
+.xa-editor .ProseMirror-selectednode { outline: 2px solid #ff6600; outline-offset: 3px; border-radius: 16px; }
+.xa-editor .ProseMirror .selectedCell { background: rgb(255 102 0 / 0.12); }
+.xa-editor .ProseMirror div[data-youtube-video] { cursor: move; }
+.xa-editor .ProseMirror div[data-youtube-video] iframe { pointer-events: none; }
+.xa-editor .ProseMirror-gapcursor:after { border-top-color: #ff6600; }

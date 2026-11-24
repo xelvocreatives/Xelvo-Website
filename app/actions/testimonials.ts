@@ -1,20 +1,40 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
-import { createAdminClient } from "@/utils/supabase/admin";
+import { ObjectId } from "mongodb";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { saveFile } from "@/lib/file-upload";
+import { isAdmin, UNAUTHORIZED } from "@/lib/auth-guard";
+import { isOwnUploadUrl } from "@/lib/cloudinary";
+import { parseId, testimonials } from "@/lib/db/models";
+import { applyOrder, topOrder, type Orderable } from "@/lib/db/ordering";
+import type { Collection } from "mongodb";
 
 const TestimonialSchema = z.object({
-  clientName: z.string().min(1, "Client Name is required"),
-  company: z.string().min(1, "Company is required"),
-  text: z.string().min(10, "Review text must be at least 10 characters"),
-  rating: z.coerce.number().min(1).max(5),
+  clientName: z
+    .string()
+    .trim()
+    .min(1, "Add the client's name.")
+    .max(80, "Keep the name under 80 characters."),
+  company: z
+    .string()
+    .trim()
+    .min(1, "Add the client's company or brand.")
+    .max(80, "Keep the company under 80 characters."),
+  text: z
+    .string()
+    .trim()
+    .min(10, "The review needs at least 10 characters.")
+    .max(500, "Keep the review under 500 characters."),
+  rating: z.coerce
+    .number()
+    .int()
+    .min(1, "Choose a rating from 1 to 5 stars.")
+    .max(5, "Choose a rating from 1 to 5 stars."),
   socialPlatform: z.string().optional(),
 });
 
 export type TestimonialState = {
+  ok?: boolean;
   errors?: {
     clientName?: string[];
     company?: string[];
@@ -25,176 +45,160 @@ export type TestimonialState = {
   message?: string | null;
 };
 
+function readForm(formData: FormData) {
+  return {
+    parsed: TestimonialSchema.safeParse({
+      clientName: formData.get("clientName"),
+      company: formData.get("company"),
+      text: formData.get("text"),
+      rating: formData.get("rating"),
+      socialPlatform: formData.get("socialPlatform") ?? undefined,
+    }),
+    // Set by the form after the browser uploads the photo to Cloudinary.
+    imageUrl: formData.get("imageUrl"),
+    removeImage: formData.get("removeImage") === "1",
+  };
+}
+
+function revalidateTestimonialPages() {
+  revalidatePath("/admin", "layout");
+  revalidatePath("/");
+}
+
 export async function createTestimonial(
-  prevState: TestimonialState,
-  formData: FormData
-) {
-  const validatedFields = TestimonialSchema.safeParse({
-    clientName: formData.get("clientName"),
-    company: formData.get("company"),
-    text: formData.get("text"),
-    rating: formData.get("rating"),
-    socialPlatform: formData.get("socialPlatform"),
-  });
+  _prevState: TestimonialState,
+  formData: FormData,
+): Promise<TestimonialState> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
 
-  if (!validatedFields.success) {
+  const { parsed, imageUrl } = readForm(formData);
+  if (!parsed.success) {
     return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Create Testimonial.",
+      ok: false,
+      errors: parsed.error.flatten().fieldErrors,
+      message: "Please fix the highlighted fields.",
     };
   }
 
-  const { clientName, company, text, rating, socialPlatform } =
-    validatedFields.data;
-
-  let imageUrl: string | null = null;
-  const imageFile = formData.get("image") as File;
-  if (imageFile) {
-    imageUrl = await saveFile(imageFile);
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      message: "Unauthorized: You must be logged in.",
-    };
-  }
+  const { socialPlatform, ...fields } = parsed.data;
 
   try {
-    const supabaseAdmin = createAdminClient();
-    const { error } = await supabaseAdmin.from("Testimonial").insert({
-      clientName,
-      company,
-      text,
-      rating,
+    const now = new Date();
+    const col = await testimonials();
+    await col.insertOne({
+      _id: new ObjectId(),
+      order: await topOrder(col as unknown as Collection<Orderable>),
+      ...fields,
       socialPlatform: socialPlatform || null,
-      imageUrl,
+      socialLink: null,
+      imageUrl: isOwnUploadUrl(imageUrl, "testimonial") ? imageUrl : null,
+      createdAt: now,
+      updatedAt: now,
     });
-
-    if (error) throw error;
   } catch (error) {
     console.error("Database Error:", error);
     return {
-      message: "Database Error: Failed to Create Testimonial.",
+      ok: false,
+      message: "Couldn’t save the testimonial. Please try again.",
     };
   }
 
-  revalidatePath("/admin/testimonials");
-  revalidatePath("/");
-  return { message: "Testimonial Created" };
+  revalidateTestimonialPages();
+  return { ok: true, message: "Testimonial added." };
 }
 
 export async function updateTestimonial(
   id: string,
-  prevState: TestimonialState,
-  formData: FormData
-) {
-  const validatedFields = TestimonialSchema.safeParse({
-    clientName: formData.get("clientName"),
-    company: formData.get("company"),
-    text: formData.get("text"),
-    rating: formData.get("rating"),
-    socialPlatform: formData.get("socialPlatform"),
-  });
+  _prevState: TestimonialState,
+  formData: FormData,
+): Promise<TestimonialState> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
 
-  if (!validatedFields.success) {
+  const _id = parseId(id);
+  if (!_id) return { ok: false, message: "Testimonial not found." };
+
+  const { parsed, imageUrl, removeImage } = readForm(formData);
+  if (!parsed.success) {
     return {
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: "Missing Fields. Failed to Update Testimonial.",
+      ok: false,
+      errors: parsed.error.flatten().fieldErrors,
+      message: "Please fix the highlighted fields.",
     };
   }
 
-  const { clientName, company, text, rating, socialPlatform } =
-    validatedFields.data;
-
-  let imageUrl;
-  const imageFile = formData.get("image") as File;
-  if (imageFile && imageFile.size > 0) {
-    imageUrl = await saveFile(imageFile);
-  }
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      message: "Unauthorized: You must be logged in.",
-    };
-  }
+  const { socialPlatform, ...fields } = parsed.data;
+  const newImage = isOwnUploadUrl(imageUrl, "testimonial") ? imageUrl : null;
 
   try {
-    const updateData: {
-      clientName: string;
-      company: string;
-      text: string;
-      rating: number;
-      socialPlatform: string | null;
-      updatedAt: string;
-      imageUrl?: string;
-    } = {
-      clientName,
-      company,
-      text,
-      rating,
-      socialPlatform: socialPlatform || null,
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (imageUrl) {
-      updateData.imageUrl = imageUrl;
+    const result = await (await testimonials()).updateOne(
+      { _id },
+      {
+        $set: {
+          ...fields,
+          socialPlatform: socialPlatform || null,
+          updatedAt: new Date(),
+          // Replace the photo only when a new one was uploaded, or clear it
+          // when the admin removed it.
+          ...(newImage ? { imageUrl: newImage } : removeImage ? { imageUrl: null } : {}),
+        },
+      },
+    );
+    if (result.matchedCount === 0) {
+      return { ok: false, message: "Testimonial not found." };
     }
-
-    const supabaseAdmin = createAdminClient();
-
-    const { error } = await supabaseAdmin
-      .from("Testimonial")
-      .update(updateData)
-      .eq("id", id);
-
-    if (error) throw error;
   } catch (error) {
     console.error("Database Error:", error);
     return {
-      message: "Database Error: Failed to Update Testimonial.",
+      ok: false,
+      message: "Couldn’t save your changes. Please try again.",
     };
   }
 
-  revalidatePath("/admin/testimonials");
-  revalidatePath("/");
-  return { message: "Testimonial Updated" };
+  revalidateTestimonialPages();
+  return { ok: true, message: "Changes saved." };
 }
 
-export async function deleteTestimonial(id: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export async function deleteTestimonial(
+  id: string,
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
 
-  if (!user) {
-    return {
-      message: "Unauthorized: You must be logged in.",
-    };
-  }
+  const _id = parseId(id);
+  if (!_id) return { ok: false, message: "Testimonial not found." };
 
   try {
-    const supabaseAdmin = createAdminClient();
-    const { error } = await supabaseAdmin
-      .from("Testimonial")
-      .delete()
-      .eq("id", id);
-    if (error) throw error;
-
-    revalidatePath("/admin/testimonials");
-    revalidatePath("/");
-    return { message: "Deleted Testimonial" };
+    await (await testimonials()).deleteOne({ _id });
   } catch (error) {
     console.error("Database Error:", error);
-    return { message: "Database Error: Failed to Delete Testimonial." };
+    return { ok: false, message: "Couldn’t delete the testimonial. Please try again." };
   }
+
+  revalidateTestimonialPages();
+  return { ok: true, message: "Testimonial deleted." };
+}
+
+/** Saves the drag-and-drop arrangement: `ids` is every testimonial, in order. */
+export async function reorderTestimonials(
+  ids: string[],
+): Promise<{ ok: boolean; message: string }> {
+  if (!(await isAdmin())) return { ok: false, message: UNAUTHORIZED };
+
+  const parsed = ids.map(parseId);
+  if (parsed.some((id) => id === null)) return { ok: false, message: "Couldn’t save the new order." };
+
+  try {
+    const outcome = await applyOrder(
+      (await testimonials()) as unknown as Collection<Orderable>,
+      parsed as ObjectId[],
+    );
+    if (outcome === "stale") {
+      return { ok: false, message: "Your testimonials changed in the meantime. Refresh the page and try again." };
+    }
+  } catch (error) {
+    console.error("Reorder error:", error);
+    return { ok: false, message: "Couldn’t save the new order. Please try again." };
+  }
+
+  revalidateTestimonialPages();
+  return { ok: true, message: "Order saved." };
 }

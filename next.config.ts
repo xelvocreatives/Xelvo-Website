@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    // The old projects page is now the full Portfolio page.
+    return [{ source: "/projects", destination: "/portfolio", permanent: true }];
+  },
   /* config options here */
 
   images: {
@@ -11,7 +15,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "*.supabase.co",
+        hostname: "res.cloudinary.com",
       },
     ],
   },

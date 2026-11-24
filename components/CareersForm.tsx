@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useActionState } from "react";
+import React, { useState, useActionState, startTransition } from "react";
 import {
   User,
   Phone,
@@ -18,6 +18,8 @@ import {
 import { ContactInput } from "./ui/contact-input";
 import { cn } from "@/lib/utils";
 import { submitApplication } from "@/app/actions/career";
+import { uploadToCloudinary } from "@/lib/upload-client";
+import type { CareersContent } from "@/lib/site/schema";
 
 const initialState = {
   success: false,
@@ -25,13 +27,42 @@ const initialState = {
   message: null as string | null,
 };
 
-export function CareersForm() {
+export function CareersForm({ content }: { content: CareersContent["form"] }) {
   const [location, setLocation] = useState("remote");
   const [fileName, setFileName] = useState("");
-  const [state, formAction, isPending] = useActionState(
+  const [state, formAction, isSubmitting] = useActionState(
     submitApplication,
     initialState,
   );
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const isPending = isSubmitting || uploading;
+
+  // Upload the CV straight to Cloudinary, then submit only its URL.
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const resume = formData.get("resume");
+    formData.delete("resume");
+    setUploadError(null);
+
+    if (!(resume instanceof File) || resume.size === 0) {
+      setUploadError("Please upload your resume.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      formData.set("resumeUrl", await uploadToCloudinary(resume, "resume"));
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed.");
+      return;
+    } finally {
+      setUploading(false);
+    }
+
+    startTransition(() => formAction(formData));
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -47,13 +78,9 @@ export function CareersForm() {
             <CheckCircle2 size={40} />
           </div>
           <h2 className="text-3xl font-bold text-white">
-            Application Received!
+            {content.successTitle}
           </h2>
-          <p className="text-gray-400 text-lg">
-            Thanks for your interest in joining Xelvo Creatives. We&apos;ve
-            received your application and our team will review it shortly. If
-            it&apos;s a match, we&apos;ll be in touch!
-          </p>
+          <p className="text-gray-400 text-lg">{content.successMessage}</p>
           <button
             onClick={() => window.location.reload()}
             className="text-[#FF6600] font-bold hover:underline"
@@ -78,14 +105,12 @@ export function CareersForm() {
         <div className="relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-[32px] md:text-[48px] font-bold text-white mb-4">
-              Apply Now
+              {content.title}
             </h2>
-            <p className="text-[#A0A0A0] text-lg">
-              Tell us about yourself and why you&apos;d like to join our team
-            </p>
+            {content.description && <p className="text-[#A0A0A0] text-lg">{content.description}</p>}
           </div>
 
-          <form action={formAction} className="max-w-[800px] mx-auto space-y-8">
+          <form onSubmit={handleSubmit} className="max-w-[800px] mx-auto space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Full Name */}
               <div className="space-y-3">
@@ -330,19 +355,19 @@ export function CareersForm() {
               />
             </div>
 
-            {state?.error && (
+            {(uploadError || state?.error) && (
               <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-xl flex items-center gap-3 text-red-500 text-sm">
                 <AlertCircle size={18} />
-                {state.error}
+                {uploadError || state.error}
               </div>
             )}
 
             {/* Privacy Notice */}
-            <p className="text-[#6B7280] text-sm leading-relaxed border-l-2 border-[#FF6600]/30 pl-4 py-1">
-              We respect your privacy. Your information will be used solely for
-              recruitment purposes and will not be shared with third parties. We
-              handle all applications with care and confidentiality.
-            </p>
+            {content.privacy && (
+              <p className="text-[#6B7280] text-sm leading-relaxed border-l-2 border-[#FF6600]/30 pl-4 py-1">
+                {content.privacy}
+              </p>
+            )}
 
             {/* Submit Button */}
             <button
@@ -350,7 +375,11 @@ export function CareersForm() {
               disabled={isPending}
               className="w-full py-5 rounded-2xl bg-[#FF6600] text-white font-bold text-xl hover:bg-[#FF7700] hover:scale-[1.01] active:scale-[0.99] transition-all shadow-[0_10px_30px_rgba(255,92,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
             >
-              {isPending ? "Submitting Application..." : "Submit Application"}
+              {uploading
+                ? "Uploading Resume..."
+                : isPending
+                  ? "Submitting Application..."
+                  : content.submitLabel}
             </button>
           </form>
         </div>

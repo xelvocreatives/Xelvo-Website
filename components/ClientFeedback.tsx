@@ -2,23 +2,15 @@ import { Star } from "lucide-react";
 import Image from "next/image";
 import HeartLogo from "../public/images/feedback-logo.svg";
 import ArrowElement from "../public/images/arrow-element.svg";
-
-interface Testimonial {
-  id: string;
-  clientName: string;
-  company: string;
-  rating: number;
-  text: string;
-  imageUrl: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import type { Testimonial } from "@/types";
+import type { HomeSections } from "@/lib/site/schema";
 
 interface ClientFeedbackProps {
   testimonials?: Testimonial[];
+  content: HomeSections["testimonials"];
 }
 
-export function ClientFeedback({ testimonials = [] }: ClientFeedbackProps) {
+export function ClientFeedback({ testimonials = [], content }: ClientFeedbackProps) {
   const itemsToDisplay =
     testimonials.length > 0
       ? testimonials.map((t) => ({
@@ -46,17 +38,19 @@ export function ClientFeedback({ testimonials = [] }: ClientFeedbackProps) {
             className="rotate-180"
           />
           <p className="text-[#FFFFFF] text-[14px] font-light leading-[14px]">
-            Testimonials
+            {content.label}
           </p>
           <Image src={ArrowElement} alt="Clients" width={30} height={30} />
         </div>
         {/* Section Title */}
         <h2 className="text-center text-3xl lg:text-[40px] font-bold text-white">
-          Client Feedback
+          {content.title}
         </h2>
-        <p className="text-center text-[#B9B9B9] text-base lg:text-[18px] font-light leading-[27px]">
-          Trusted by 100+ happy clients
-        </p>
+        {content.subtitle && (
+          <p className="text-center text-[#B9B9B9] text-base lg:text-[18px] font-light leading-[27px]">
+            {content.subtitle}
+          </p>
+        )}
       </div>
 
       {/* Reviews Grid */}
@@ -130,15 +124,17 @@ export function ClientFeedback({ testimonials = [] }: ClientFeedbackProps) {
           </div>
         ))}
       </div>
-      <div className="w-full max-w-[460px] min-h-[75px] py-4 bg-[#121212] rounded-[20px] flex flex-wrap items-center justify-center gap-x-[15px] gap-y-2 px-6 shadow-[0px_4px_24px_rgba(0,0,0,0.1)] cursor-pointer hover:scale-105 transition-all duration-300">
-        <Star size={24} fill="#FF6C25" style={{ color: "#FF6C25" }} />
-        <h6 className="text-[16px] md:text-[18px] font-normal leading-tight text-[#FFFFFF]">
-          4.9 . Based on 1.5k reviews
-        </h6>
-        <p className="text-[12px] md:text-[14px] font-normal leading-tight text-[#B9B9B9]">
-          1,500 happy clients
-        </p>
-      </div>
+      {content.rating.show && (
+        <div className="w-full max-w-[460px] min-h-[75px] py-4 bg-[#121212] rounded-[20px] flex flex-wrap items-center justify-center gap-x-[15px] gap-y-2 px-6 shadow-[0px_4px_24px_rgba(0,0,0,0.1)] cursor-pointer hover:scale-105 transition-all duration-300">
+          <Star size={24} fill="#FF6C25" style={{ color: "#FF6C25" }} />
+          <h6 className="text-[16px] md:text-[18px] font-normal leading-tight text-[#FFFFFF]">
+            {content.rating.title}
+          </h6>
+          <p className="text-[12px] md:text-[14px] font-normal leading-tight text-[#B9B9B9]">
+            {content.rating.subtitle}
+          </p>
+        </div>
+      )}
     </section>
   );
 }

@@ -1,19 +1,23 @@
-import { type NextRequest } from "next/server";
-import { updateSession } from "@/utils/supabase/middleware";
+import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 
-export async function proxy(request: NextRequest) {
-  return await updateSession(request);
-}
+// Protects the admin pages. Server actions check the session themselves
+// (lib/auth-guard.ts), so this only needs to cover page navigation.
+export const proxy = auth((request) => {
+  const isLoggedIn = Boolean(request.auth?.user);
+  const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/admin") && !isLoggedIn) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  if (pathname === "/login" && isLoggedIn) {
+    return NextResponse.redirect(new URL("/admin", request.url));
+  }
+
+  return NextResponse.next();
+});
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * Feel free to modify this pattern to include more paths.
-     */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/admin/:path*", "/login"],
 };

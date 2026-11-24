@@ -4,6 +4,7 @@ import Image from "next/image";
 import React, { useActionState } from "react";
 import { ContactInput } from "./ui/contact-input";
 import { submitInquiry } from "@/app/actions/inquire";
+import type { HomeSections } from "@/lib/site/schema";
 
 const initialState = {
   success: false,
@@ -11,7 +12,7 @@ const initialState = {
   message: "",
 };
 
-export function ContactSection() {
+export function ContactSection({ content }: { content: HomeSections["contact"] }) {
   const [state, formAction, isPending] = useActionState(
     submitInquiry,
     initialState,
@@ -26,12 +27,11 @@ export function ContactSection() {
       <div className="flex flex-col gap-[40px]">
         <div className="flex flex-col gap-[8px]">
           <h2 className="text-[30px] font-bold leading-[34px] text-[#FFFFFF]">
-            Start Your Brand&apos;s Growth Journey
+            {content.title}
           </h2>
-          <p className="text-[16px] font-normal leading-[24px] text-[#FFFFFF]">
-            Let&apos;s connect, share your story, and we&apos;ll craft
-            Shariah-compliant visuals that help you thrive globally.
-          </p>
+          {content.description && (
+            <p className="text-[16px] font-normal leading-[24px] text-[#FFFFFF]">{content.description}</p>
+          )}
         </div>
 
         <form action={formAction} className="space-y-[20px]">
@@ -96,21 +96,11 @@ export function ContactSection() {
                 <option value="" className="bg-[#111]">
                   Select a service
                 </option>
-                <option value="Brand Identity" className="bg-[#111]">
-                  Brand Identity Design
-                </option>
-                <option value="UI/UX Design" className="bg-[#111]">
-                  UI/UX Design
-                </option>
-                <option value="Web Development" className="bg-[#111]">
-                  Web Development
-                </option>
-                <option value="Marketing Strategy" className="bg-[#111]">
-                  Marketing Strategy
-                </option>
-                <option value="Shariah-Compliant Design" className="bg-[#111]">
-                  Shariah-Compliant Design
-                </option>
+                {content.services.map((service) => (
+                  <option key={service} value={service} className="bg-[#111]">
+                    {service}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -151,22 +141,24 @@ export function ContactSection() {
             >
               {isPending
                 ? "Connecting with our experts..."
-                : "Launch Your Growth Journey"}
+                : content.submitLabel}
             </button>
           )}
         </form>
       </div>
 
-      {/* Right: Astronaut Illustration */}
+      {/* Right: picture chosen in the admin */}
+      {content.image && (
       <div className="w-full h-full relative min-h-[400px] flex items-center justify-center">
         <Image
-          src="https://images.unsplash.com/photo-1658231102383-5073bc829a14?q=80&w=1740&auto=format&fit=crop"
-          alt="Astronaut representing growth and exploration"
+          src={content.image}
+          alt={content.imageAlt}
           className="rounded-[20px] object-cover"
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
         />
       </div>
+      )}
     </section>
   );
 }

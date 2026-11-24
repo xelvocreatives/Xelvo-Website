@@ -15,6 +15,7 @@ export function AnimatedCounter({
   prefix = "",
 }: AnimatedCounterProps) {
   const [count, setCount] = useState(0);
+  const decimals = Math.min(2, (String(end).split(".")[1] ?? "").length);
   const [hasStarted, setHasStarted] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +47,9 @@ export function AnimatedCounter({
       const progress = Math.min((currentTime - startTime) / duration, 1);
 
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      setCount(Math.floor(easeOutQuart * (end - startValue) + startValue));
+      const raw = easeOutQuart * (end - startValue) + startValue;
+      // Whole numbers count up in steps of 1; decimals (like 4.7) keep their places.
+      setCount(decimals ? Number(raw.toFixed(decimals)) : Math.floor(raw));
 
       if (progress < 1) {
         requestAnimationFrame(animate);
@@ -54,12 +57,12 @@ export function AnimatedCounter({
     };
 
     requestAnimationFrame(animate);
-  }, [hasStarted, end, duration]);
+  }, [hasStarted, end, duration, decimals]);
 
   return (
     <div ref={elementRef}>
       {prefix}
-      {count}
+      {decimals ? count.toFixed(decimals) : count}
       {suffix}
     </div>
   );

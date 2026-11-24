@@ -4,20 +4,51 @@ import {
   FaInstagram,
   FaLinkedinIn,
   FaBehance,
+  FaPinterestP,
+  FaYoutube,
+  FaTiktok,
 } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import type { IconType } from "react-icons";
+import { getSiteDoc } from "@/lib/site/store";
+import { SOCIAL_KEYS, SOCIAL_NAMES, whatsappLink, type SocialKey } from "@/lib/site/schema";
 import Link from "next/link";
 import Image from "next/image";
 import BrandLogo from "../public/images/brand-logo.png";
 
-export function Footer() {
+const SOCIAL_ICONS: Record<SocialKey, IconType> = {
+  facebook: FaFacebookF,
+  instagram: FaInstagram,
+  linkedin: FaLinkedinIn,
+  behance: FaBehance,
+  pinterest: FaPinterestP,
+  x: FaXTwitter,
+  youtube: FaYoutube,
+  tiktok: FaTiktok,
+};
+
+export async function Footer() {
   const currentYear = new Date().getFullYear();
+  const site = await getSiteDoc("site");
+
+  const contactLinks = [
+    site.phone && { title: site.phone, icon: Phone, href: whatsappLink(site.whatsapp) || `tel:${site.phone.replace(/[^d+]/g, "")}` },
+    site.email && { title: site.email, icon: Mail, href: `mailto:${site.email}` },
+    site.address && { title: site.address, icon: MapPin, href: site.mapUrl || "#contact" },
+  ].filter(Boolean) as { title: string; icon: typeof Phone; href: string }[];
+
+  const socialLinks = SOCIAL_KEYS.filter((k) => site.socials[k]).map((k) => ({
+    icon: SOCIAL_ICONS[k],
+    href: site.socials[k],
+    label: SOCIAL_NAMES[k],
+  }));
 
   const linksStack: {
     title: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     links: { title: string; href: string; icon: any }[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    socialLinks?: { icon: any; href: string }[];
+    socialLinks?: { icon: any; href: string; label: string }[];
   }[] = [
     {
       title: "Navigation",
@@ -26,55 +57,18 @@ export function Footer() {
         { title: "Featured", href: "#featured", icon: null },
         { title: "Portfolio", href: "/portfolio", icon: null },
         { title: "Testimonials", href: "#testimonials", icon: null },
+        { title: "Blog", href: "/blog", icon: null },
         { title: "Contact", href: "#contact", icon: null },
       ],
     },
     {
       title: "Services",
-      links: [
-        { title: "Brand Identity", href: "#services", icon: null },
-        { title: "Social Graphics", href: "#services", icon: null },
-        { title: "Web Design", href: "#services", icon: null },
-        { title: "Marketing", href: "#services", icon: null },
-      ],
+      links: site.footerServices.map((title) => ({ title, href: "#services", icon: null })),
     },
     {
       title: "Contact",
-      links: [
-        {
-          title: "+92 319 0504566",
-          icon: Phone,
-          href: "https://wa.me/+923190504566",
-        },
-        {
-          title: "hello@xelvocreatives.com",
-          icon: Mail,
-          href: "mailto:hello@xelvocreatives.com",
-        },
-        {
-          title: "Islamabad Capital Territory",
-          icon: MapPin,
-          href: "https://www.google.com/maps/place/Islamabad+Capital+Territory",
-        },
-      ],
-      socialLinks: [
-        {
-          icon: FaFacebookF,
-          href: "https://www.facebook.com/xelvocreatives",
-        },
-        {
-          icon: FaInstagram,
-          href: "https://www.instagram.com/xelvocreatives/",
-        },
-        {
-          icon: FaLinkedinIn,
-          href: "https://www.linkedin.com/company/xelvocreatives/",
-        },
-        {
-          icon: FaBehance,
-          href: "https://www.behance.net/xelvocreatives",
-        },
-      ],
+      links: contactLinks,
+      socialLinks,
     },
   ];
 
@@ -93,14 +87,13 @@ export function Footer() {
               />
 
               <p className="text-[16px] font-medium leading-[24px] text-white">
-                Shariah-compliant branding and marketing solutions that help
-                Muslim businesses scale globally.
+                {site.footerText}
               </p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-10 sm:gap-[120px]">
-            {linksStack.map((linkGroup, index) => (
+            {linksStack.filter((g) => g.links.length > 0 || g.socialLinks?.length).map((linkGroup, index) => (
               <div key={index} className="flex flex-col gap-6 lg:gap-[44px]">
                 <h4 className="text-[16px] leading-[24px] font-bold text-[#FF6600]">
                   {linkGroup.title}
@@ -131,6 +124,8 @@ export function Footer() {
                         key={idx}
                         href={social.href}
                         target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={social.label}
                         className="w-10 h-10 flex items-center justify-center rounded-[8px] border border-[#FF6600]/30 bg-[#FF6600]/5 hover:bg-[#FF6600] group transition-all duration-300"
                       >
                         <social.icon

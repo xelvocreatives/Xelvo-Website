@@ -1,42 +1,27 @@
-import { Lightbulb, Ruler, Target, Heart } from "lucide-react";
+import { Heart, Lightbulb, Rocket, Ruler, Shield, Sparkles, Target, Users, type LucideIcon } from "lucide-react";
+import type { CareersContent, ValueIcon } from "@/lib/site/schema";
 
-const values = [
-  {
-    title: "Ideas Over Noise",
-    description:
-      "We value substance and strategy over trends and gimmicks. Every project should have purpose.",
-    icon: Lightbulb,
-    color: "#FF6600",
-  },
-  {
-    title: "Craft & Execution",
-    description:
-      "Details matter. We respect the process, refine until it's right, and deliver work we're proud of.",
-    icon: Ruler,
-    color: "#E69700",
-  },
-  {
-    title: "Ownership & Accountability",
-    description:
-      "We take responsibility for our work, own our mistakes, and constantly push to improve.",
-    icon: Target,
-    color: "#FF6600",
-  },
-  {
-    title: "Meaningful Work",
-    description:
-      "We believe creativity should serve a greater purpose - helping brands grow and make an impact.",
-    icon: Heart,
-    color: "#E69700",
-  },
-];
+const ICONS: Record<ValueIcon, LucideIcon> = {
+  lightbulb: Lightbulb,
+  ruler: Ruler,
+  target: Target,
+  heart: Heart,
+  sparkles: Sparkles,
+  users: Users,
+  shield: Shield,
+  rocket: Rocket,
+};
 
-export function WhatWeValue() {
+// Cards alternate between the two brand oranges, as before.
+const COLORS = ["#FF6600", "#E69700"];
+
+export function WhatWeValue({ content }: { content: CareersContent["values"] }) {
+  const values = content.items.map((v, i) => ({ ...v, icon: ICONS[v.icon], color: COLORS[i % 2] }));
   return (
     <section className="w-full max-w-[1280px] mx-auto px-6 py-[80px] lg:py-[100px]">
       <div className="flex flex-col items-center mb-[60px] text-center">
         <h2 className="text-[32px] md:text-[42px] font-bold text-white mb-4">
-          What We Value
+          {content.title}
         </h2>
         <div className="w-20 h-1 bg-[#FF6600] rounded-full" />
       </div>

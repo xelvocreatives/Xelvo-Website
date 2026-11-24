@@ -1,7 +1,9 @@
 "use server";
 
-import { createAdminClient } from "@/utils/supabase/admin";
+import { ObjectId } from "mongodb";
 import { z } from "zod";
+import { isAdmin, UNAUTHORIZED } from "@/lib/auth-guard";
+import { inquiries, parseId } from "@/lib/db/models";
 import { revalidatePath } from "next/cache";
 
 const InquirySchema = z.object({
@@ -74,9 +76,9 @@ export async function submitInquiry(
       aiInsight = "🏢 B2B Lead: Inquiry from a potential corporate client.";
     }
 
-    const supabaseAdmin = createAdminClient();
-
-    const { error: dbError } = await supabaseAdmin.from("Inquiry").insert({
+    const now = new Date();
+    await (await inquiries()).insertOne({
+      _id: new ObjectId(),
       name: `${firstName} ${lastName}`,
       email,
       phone: phone || null,
@@ -85,11 +87,12 @@ export async function submitInquiry(
       message: message,
       aiInsight,
       status: "new",
+      createdAt: now,
+      updatedAt: now,
     });
 
-    if (dbError) throw dbError;
+    revalidatePath("/admin", "layout");
 
-    revalidatePath("/admin/inquiries");
     return {
       success: true,
       message:
@@ -106,21 +109,52 @@ export async function submitInquiry(
   }
 }
 
+const INQUIRY_STATUSES = [
+  "new",
+  "contacted",
+  "qualified",
+  "converted",
+  "rejected",
+] as const;
+
 export async function updateInquiryStatus(id: string, status: string) {
+  if (!(await isAdmin())) return { success: false, error: UNAUTHORIZED };
+
+  const _id = parseId(id);
+  const nextStatus = INQUIRY_STATUSES.find((s) => s === status);
+  if (!_id || !nextStatus) {
+    return { success: false, error: "Invalid inquiry or status." };
+  }
+
   try {
-    const supabaseAdmin = createAdminClient();
-    const { error } = await supabaseAdmin
-      .from("Inquiry")
-      .update({ status })
-      .eq("id", id);
+    await (await inquiries()).updateOne(
+      { _id },
+      { $set: { status: nextStatus, updatedAt: new Date() } },
+    );
 
-    if (error) throw error;
-
-    revalidatePath(`/admin/inquiries/${id}`);
-    revalidatePath("/admin/inquiries");
+    revalidatePath("/admin", "layout");
     return { success: true };
   } catch (error) {
     console.error("Status update error:", error);
     return { success: false, error: "Failed to update inquiry status." };
   }
+}
+
+export async function deleteInquiry(
+  id: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!(await isAdmin())) return { success: false, error: UNAUTHORIZED };
+
+  const _id = parseId(id);
+  if (!_id) return { success: false, error: "Lead not found." };
+
+  try {
+    await (await inquiries()).deleteOne({ _id });
+  } catch (error) {
+    console.error("deleteInquiry error:", error);
+    return { success: false, error: "Couldn’t delete the lead. Please try again." };
+  }
+
+  revalidatePath("/admin", "layout");
+  return { success: true };
 }
