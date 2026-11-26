@@ -19,15 +19,15 @@ export function Header() {
   }, []);
 
   const leftLinks = [
-    { title: "About", href: "#about" },
-    { title: "Services", href: "#services" },
-    { title: "Featured", href: "#featured" },
+    { title: "About", href: "/#about" },
+    { title: "Services", href: "/#services" },
+    { title: "Featured", href: "/#featured" },
   ];
 
   const rightLinks = [
     { title: "Portfolio", href: "/portfolio" },
     { title: "Career", href: "/career" },
-    { title: "Contact", href: "#contact" },
+    { title: "Contact", href: "/#contact" },
   ];
 
   const allLinks = [...leftLinks, ...rightLinks];

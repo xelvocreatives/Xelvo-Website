@@ -34,7 +34,7 @@ export async function Footer() {
   const contactLinks = [
     site.phone && { title: site.phone, icon: Phone, href: whatsappLink(site.whatsapp) || `tel:${site.phone.replace(/[^d+]/g, "")}` },
     site.email && { title: site.email, icon: Mail, href: `mailto:${site.email}` },
-    site.address && { title: site.address, icon: MapPin, href: site.mapUrl || "#contact" },
+    site.address && { title: site.address, icon: MapPin, href: site.mapUrl || "/#contact" },
   ].filter(Boolean) as { title: string; icon: typeof Phone; href: string }[];
 
   const socialLinks = SOCIAL_KEYS.filter((k) => site.socials[k]).map((k) => ({
@@ -53,17 +53,17 @@ export async function Footer() {
     {
       title: "Navigation",
       links: [
-        { title: "About", href: "#about", icon: null },
-        { title: "Featured", href: "#featured", icon: null },
+        { title: "About", href: "/#about", icon: null },
+        { title: "Featured", href: "/#featured", icon: null },
         { title: "Portfolio", href: "/portfolio", icon: null },
-        { title: "Testimonials", href: "#testimonials", icon: null },
+        { title: "Testimonials", href: "/#testimonials", icon: null },
         { title: "Blog", href: "/blog", icon: null },
-        { title: "Contact", href: "#contact", icon: null },
+        { title: "Contact", href: "/#contact", icon: null },
       ],
     },
     {
       title: "Services",
-      links: site.footerServices.map((title) => ({ title, href: "#services", icon: null })),
+      links: site.footerServices.map((title) => ({ title, href: "/#services", icon: null })),
     },
     {
       title: "Contact",
